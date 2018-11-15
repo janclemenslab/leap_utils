@@ -33,7 +33,7 @@ def test_export_boxes():
     videofilename = '/Volumes/ukme04/#Common/chainingmic/dat.processed/localhost-20180628_173900/localhost-20180628_173900.mp4'
     vr = VideoReader(videofilename)
     nb_flies = 3
-    box_centers = 400+np.ones((1000, nb_flies, 2))
+    box_centers = 400 + np.ones((1000, nb_flies, 2))
     box_centers[100, 0, :] = [10, 10]
     box_centers[100, 2, :] = [900, 900]
 
@@ -45,9 +45,9 @@ def test_export_boxes():
     frame_numbers = range(100, 110)
     # print(np.array([100, 100]))
     boxes, fly_id, fly_frames = export_boxes(vr, box_centers, box_angles=box_angles, box_size=box_size, frame_numbers=frame_numbers)
-    assert np.all(boxes.shape == (len(frame_numbers)*nb_flies, *box_size, vr.frame_channels))
+    assert np.all(boxes.shape == (len(frame_numbers) * nb_flies, *box_size, vr.frame_channels))
     boxes, fly_id, fly_frames = export_boxes(vr, box_centers, box_angles=box_angles, box_size=box_size, frame_numbers=frame_numbers)
-    assert np.all(boxes.shape == (len(frame_numbers)*nb_flies, *box_size, vr.frame_channels))
+    assert np.all(boxes.shape == (len(frame_numbers) * nb_flies, *box_size, vr.frame_channels))
     plt.subplot(4, 1, 1)
     plt.plot(fly_id)
     plt.subplot(4, 1, 2)
