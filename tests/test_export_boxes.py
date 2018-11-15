@@ -37,11 +37,12 @@ def test_export_boxes():
     box_centers[100, 2, :] = [900, 900]
 
     box_angles = np.zeros((1000, 3, 1))
-    box_angles[101, 0, 0] = 90
-    box_angles[101, 2, 0] = -90
+    box_angles[101, 0, 0] = 45
+    box_angles[101, 2, 0] = -60
 
     frame_numbers = range(100, 110)
     # print(np.array([100, 100]))
+    # boxes, fly_id, fly_frames = export_boxes(vr, box_centers, box_angles=box_angles, box_size=np.array([100, 100]), frame_numbers=frame_numbers)
     boxes, fly_id, fly_frames = export_boxes(vr, box_centers, box_angles=box_angles, box_size=np.array([100, 100]), frame_numbers=frame_numbers)
     plt.subplot(4, 1, 1)
     plt.plot(fly_id)
