@@ -14,9 +14,9 @@ res/RECORDINGNAME/
 ```python
 track_flies()
 fix_tracks()
-boxes = export_boxes()
-confmaps = predict_confmaps(boxes)
-positions, confidence = process_confmaps(confmaps)
+boxes = export_boxes(VideoReader, framenumbers, box_size, box_centers, box_angles)
+confmaps = predict_confmaps(network, boxes)
+positions, confidence = process_confmaps_simple(confmaps)
 bad_boxes = detect_bad_boxes(positions, confidence)
 bad_boxes_fixed = fix_bad_boxes(bad_boxes, postions)
 predict_pose(bad_boxes)
