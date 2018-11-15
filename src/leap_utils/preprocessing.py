@@ -52,10 +52,13 @@ def export_boxes(vr: VideoReader, box_centers: np.array, box_size: List[int],
             box_idx += 1
             fly_id[box_idx] = fly_number
             fly_frame[box_idx] = frame_number
-            box = crop_frame(frame, box_centers[frame_number, fly_number, :], box_size)
             if box_angles is not None:
+                box = crop_frame(frame, box_centers[frame_number, fly_number, :], 1.5*box_size)  # crop larger box to get padding for rotation
                 box = sk_rotate(box, box_angles[frame_number, fly_number, :],
-                                resize=True, mode='edge', preserve_range=True)
+                                resize=False, mode='edge', preserve_range=True)
+                box = crop_frame(box, np.array(box.shape)/2, box_size)    # trim rotated box to the right size
+            else:
+                box = crop_frame(frame, box_centers[frame_number, fly_number, :], box_size)
             boxes[box_idx, ...] = box
 
     return boxes, fly_id, fly_frame
