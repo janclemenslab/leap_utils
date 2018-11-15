@@ -1,4 +1,5 @@
 #  folder structure
+```
 dat/RECORDINGNAME
     videorecording
     soundrecording
@@ -8,17 +9,20 @@ res/RECORDINGNAME/
     pose
     songsegmentation
     analysislogs
-
+```
 # analysis pipeline
-track_flies
-fix_tracks
+```python
+track_flies()
+fix_tracks()
 boxes = export_boxes()
 confmaps = predict_confmaps(boxes)
 positions, confidence = process_confmaps(confmaps)
 bad_boxes = detect_bad_boxes(positions, confidence)
 bad_boxes_fixed = fix_bad_boxes(bad_boxes, postions)
 predict_pose(bad_boxes)
+```
 
+interface/logic for some of the functions
 ```python
 from typing import Sequence, Union
 import numpy as np
