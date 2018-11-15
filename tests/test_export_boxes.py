@@ -1,4 +1,4 @@
-from leap_utils.preprocessing.export_boxes import crop_frame, export_boxes
+from leap_utils.preprocessing import crop_frame, export_boxes
 import numpy as np
 import matplotlib.pyplot as plt
 from videoreader import VideoReader
