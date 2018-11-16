@@ -65,7 +65,3 @@ def test_export_boxes():
     plt.subplot(4, 3, 12)
     plt.imshow(boxes[5, :, :, 0])
     plt.pause(2)
-
-
-test_crop_frame()
-test_export_boxes()

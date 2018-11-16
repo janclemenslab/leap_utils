@@ -1,25 +1,28 @@
 import logging
 import numpy as np
+import h5py
 
 from leap_utils.predict import load_network, predict_confmaps
 
 
 logging.basicConfig(level=logging.DEBUG)
 
-path_to_network = '/Volumes/ukme04/#Common/adrian/Adrian/models/181029_122243-n=1450/best_model.h5'
+path_to_network = 'tests/data/model.h5'
+path_to_boxes = 'tests/data/boxes.h5'
 
 
-def test_load_network(path_to_network):
+def test_load_network():
     # test load_model
     m = load_network(path_to_network)  # w/o resize
-    print(m.output_shape)
+    print(m.output_shape, m.input_shape)
     assert m.output_shape == (None, 120, 120, 12)
 
     m = load_network(path_to_network, input_shape=(500, 500, 1))  # w/ resize
+    print(m.output_shape, m.input_shape)
     assert np.all(m.output_shape == (None, 500, 500, 12))
 
 
-def test_predict_confmaps(path_to_network):
+def test_predict_confmaps():
     boxes = np.zeros((120, 120, 1), dtype=np.uint8)
     network = load_network(path_to_network, input_shape=boxes.shape)  # w/ resize
     try:
@@ -38,5 +41,17 @@ def test_predict_confmaps(path_to_network):
     assert np.all(confmaps.shape == (10, 120, 120, 12))
 
 
-test_load_network(path_to_network)
-test_predict_confmaps(path_to_network)
+def test_predict_confmaps_data():
+    import matplotlib.pyplot as plt
+    plt.ion()
+    with h5py.File(path_to_boxes, 'r') as f:
+        boxes = f['boxes'][:]
+    boxes = boxes.swapaxes(1, -1)
+    network = load_network(path_to_network, input_shape=boxes.shape[1:])  # w/ resize
+    confmaps = predict_confmaps(network, boxes)
+    for prt in range(12):
+        plt.subplot(3, 4, prt + 1)
+        plt.imshow(confmaps[-1, ..., prt])
+        plt.show()
+        plt.pause(0.01)
+    plt.pause(10)
