@@ -2,6 +2,7 @@ import logging
 import numpy as np
 import h5py
 
+from leap_utils.preprocessing import normalize_matlab_boxes
 from leap_utils.predict import load_network, predict_confmaps
 
 
@@ -45,13 +46,18 @@ def test_predict_confmaps_data():
     import matplotlib.pyplot as plt
     plt.ion()
     with h5py.File(path_to_boxes, 'r') as f:
-        boxes = f['boxes'][:]
-    boxes = boxes.swapaxes(1, -1)
+        boxes = f['box'][:]
+    boxes = normalize_matlab_boxes(boxes)
+    plt.figure(1)
+    plt.imshow(boxes[-1, ..., 0])
+    plt.show()
+    plt.pause(0.01)
     network = load_network(path_to_network, input_shape=boxes.shape[1:])  # w/ resize
     confmaps = predict_confmaps(network, boxes)
+    plt.figure(2)
     for prt in range(12):
         plt.subplot(3, 4, prt + 1)
         plt.imshow(confmaps[-1, ..., prt])
         plt.show()
         plt.pause(0.01)
-    plt.pause(10)
+    plt.pause(2)
