@@ -62,3 +62,38 @@ def export_boxes(vr: VideoReader, box_centers: np.array, box_size: List[int],
             boxes[box_idx, ...] = box
 
     return boxes, fly_id, fly_frame
+
+
+def normalize_matlab_boxes(X, permute=(0, 3, 2, 1)):
+    """Normalizes shape and scale/dtype of input data.
+
+    This is only required if using boxes saved through matlab since matlab
+    messes up the order of dimensions.
+    """
+
+    # Add singleton dim for single images
+    if X.ndim == 3:
+        X = X[None, ...]
+
+    # Adjust dimensions
+    X = np.transpose(X, permute)
+
+    # Normalize
+    if X.dtype == "uint8":
+        X = X.astype("float32") / 255
+
+    return X
+
+
+def normalize_boxes(X):
+    """ Normalizes scale/dtype of input data."""
+
+    # Add singleton dim for single images
+    if X.ndim == 3:
+        X = X[None, ...]
+
+    # Normalize
+    if X.dtype == "uint8":
+        X = X.astype("float32") / 255
+
+    return X
