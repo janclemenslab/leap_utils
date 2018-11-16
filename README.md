@@ -1,24 +1,12 @@
-# install
+# Installation
 ```
-git clone http://github.com/janclemenslab/leap_tools.git`
-cd leap_tools
+git clone http://github.com/janclemenslab/leap_utils.git`
+cd leap_utils
 pip install -e .
 python setup.py test
 ```
 
-#  folder structure
-```
-dat/RECORDINGNAME
-    videorecording
-    soundrecording
-    recordinglogs
-res/RECORDINGNAME/
-    tracks
-    pose
-    songsegmentation
-    analysislogs
-```
-# analysis pipeline
+# Analysis pipeline
 ```python
 from leap_utils.preprocessing import export_boxes
 from leap_utils.predict import predict_confmaps
