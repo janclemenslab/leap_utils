@@ -9,7 +9,7 @@ from leap_utils.predict import load_network, predict_confmaps
 logging.basicConfig(level=logging.DEBUG)
 
 path_to_network = 'tests/data/model.h5'
-path_to_boxes = 'tests/data/boxes.h5'
+path_to_boxes = 'tests/data/boxes_from_matlab.h5'
 
 
 def test_load_network():
