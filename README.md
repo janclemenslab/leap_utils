@@ -2,8 +2,7 @@
 ```
 git clone http://github.com/janclemenslab/leap_utils.git`
 cd leap_utils
-pip install -e .
-python setup.py test
+pip install -e . --process-dependency-links
 ```
 
 # Analysis pipeline
