@@ -2,8 +2,8 @@ from leap_utils.preprocessing import crop_frame, export_boxes
 import numpy as np
 import matplotlib.pyplot as plt
 from videoreader import VideoReader
+import os
 plt.ion()
-
 
 def test_crop_frame():
     frame = np.zeros((251, 211, 3), dtype=np.uint8)
@@ -30,7 +30,10 @@ def test_crop_frame():
 
 
 def test_export_boxes():
-    videofilename = '/Volumes/ukme04/#Common/chainingmic/dat.processed/localhost-20180628_173900/localhost-20180628_173900.mp4'
+    if os.name == 'nt':
+        videofilename = r'\\wfs-eni\ukme04\#Common\chainingmic\dat.processed\localhost-20180628_173900\localhost-20180628_173900.mp4'
+    else:
+        videofilename = '/Volumes/ukme04/#Common/chainingmic/dat.processed/localhost-20180628_173900/localhost-20180628_173900.mp4'
     vr = VideoReader(videofilename)
     nb_flies = 3
     box_centers = 400 + np.ones((1000, nb_flies, 2))
