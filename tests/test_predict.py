@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import h5py
+import os
 
 from leap_utils.preprocessing import normalize_matlab_boxes
 from leap_utils.predict import load_network, predict_confmaps
@@ -8,9 +9,12 @@ from leap_utils.predict import load_network, predict_confmaps
 
 logging.basicConfig(level=logging.DEBUG)
 
-path_to_network = 'tests/data/model.h5'
-path_to_boxes = 'tests/data/boxes_from_matlab.h5'
-
+if os.name == 'nt':
+    path_to_network = r'tests\data\model.h5'
+    path_to_boxes = r'tests\data\boxes_from_matlab.h5'
+else:
+    path_to_network = 'tests/data/model.h5'
+    path_to_boxes = 'tests/data/boxes_from_matlab.h5'
 
 def test_load_network():
     # test load_model
