@@ -33,3 +33,10 @@ def test_process_confmaps_simple():
     assert positions.shape == (4, 4, 2)
     assert confidence.shape == (4, 4, 1)
     assert confidence[0, 0, 0] == 1
+
+
+def test_process_confmaps_simple_data():
+    # confmaps = predict_conf_maps(boxes) OR LOAD SAVED CONFMAPS
+    # positions, confidence = process_confmaps_simple(confmaps)
+    # PLOT
+    pass
