@@ -1,22 +1,24 @@
 import logging
 import numpy as np
 import h5py
+import os
+
+from . import temp_dir
+
 from leap_utils.preprocessing import normalize_matlab_boxes
 from leap_utils.predict import load_network, predict_confmaps
 
-logging.basicConfig(level=logging.DEBUG)
 
-path_to_network = 'tests/data/model.h5'
-path_to_boxes = 'tests/data/boxes_from_matlab.h5'
+path_to_network = os.path.join(temp_dir, 'model.h5')
+path_to_boxes = os.path.join(temp_dir, 'boxes_from_matlab.h5')
+
 
 def test_load_network():
     # test load_model
     m = load_network(path_to_network)  # w/o resize
-    print(m.output_shape, m.input_shape)
     assert m.output_shape == (None, 120, 120, 12)
 
     m = load_network(path_to_network, input_shape=(500, 500, 1))  # w/ resize
-    print(m.output_shape, m.input_shape)
     assert np.all(m.output_shape == (None, 500, 500, 12))
 
 

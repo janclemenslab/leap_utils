@@ -1,9 +1,16 @@
-from leap_utils.preprocessing import crop_frame, export_boxes
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from videoreader import VideoReader
-import os
+
+from . import temp_dir
+
+from leap_utils.preprocessing import crop_frame, export_boxes
+
+
 plt.ion()
+path_to_video = os.path.join(temp_dir, 'video_short.mp4')
+
 
 def test_crop_frame():
     frame = np.zeros((251, 211, 3), dtype=np.uint8)
@@ -25,16 +32,11 @@ def test_crop_frame():
         error_raised = False
     except:
         error_raised = True
-    print(error_raised)
     # assert error_raised
 
 
 def test_export_boxes():
-    if os.name == 'nt':
-        videofilename = r'\\wfs-eni\ukme04\#Common\chainingmic\dat.processed\localhost-20180628_173900\localhost-20180628_173900.mp4'
-    else:
-        videofilename = '/Volumes/ukme04/#Common/chainingmic/dat.processed/localhost-20180628_173900/localhost-20180628_173900.mp4'
-    vr = VideoReader(videofilename)
+    vr = VideoReader(path_to_video)
     nb_flies = 3
     box_centers = 400 + np.ones((1000, nb_flies, 2))
     box_centers[100, 0, :] = [10, 10]
@@ -46,7 +48,7 @@ def test_export_boxes():
 
     box_size = np.array([100, 100])
     frame_numbers = range(100, 110)
-    # print(np.array([100, 100]))
+
     boxes, fly_id, fly_frames = export_boxes(vr, box_centers, box_angles=box_angles, box_size=box_size, frame_numbers=frame_numbers)
     assert np.all(boxes.shape == (len(frame_numbers) * nb_flies, *box_size, vr.frame_channels))
     boxes, fly_id, fly_frames = export_boxes(vr, box_centers, box_angles=box_angles, box_size=box_size, frame_numbers=frame_numbers)
