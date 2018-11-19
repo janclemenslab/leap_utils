@@ -5,7 +5,7 @@ import os
 import shutil
 import tempfile
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 test_data_url = 'https://www.dropbox.com/sh/oqmuq6ewfl6gngk/AADaLf0u5zXFSstgIUSmO-Eea?dl=1'
