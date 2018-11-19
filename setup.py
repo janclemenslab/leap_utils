@@ -17,7 +17,7 @@ setup(name='leap utils',
       license='MIT',
       packages=find_packages('src'),
       package_dir={'': 'src'},
-      install_requires=['numpy', 'videoreader', 'scikit-image', 'keras'],
+      install_requires=['numpy', 'videoreader', 'scikit-image', 'keras', 'tensorflow'],
       # dependency_links are deprecated so this may stop working in the future
       dependency_links=['git+http://github.com/postpop/videoreader#egg=videoreader-0.2'],
       tests_require=['nose', 'matplotlib'],
