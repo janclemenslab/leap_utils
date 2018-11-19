@@ -1,6 +1,6 @@
 # Installation
 ```
-git clone http://github.com/janclemenslab/leap_utils.git`
+git clone http://github.com/janclemenslab/leap_utils.git
 cd leap_utils
 pip install -e . --process-dependency-links
 ```
