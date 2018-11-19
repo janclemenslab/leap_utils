@@ -48,10 +48,10 @@ def predict_confmaps(network: Union[str, keras.models.Model], boxes: np.array) -
         conf maps
     """
     if boxes.ndim is not 4:
-        raise ValueError(f'`boxes` needs to be 4D - (nboxes, widht, height, channels) - but has shape {boxes.shape}.')
+        raise ValueError(f'`boxes` needs to be 4D - (nboxes, width, height, channels) - but has shape {boxes.shape}.')
 
     if isinstance(network, str):
-        network = load_network(network, image_size=boxes.shape[1:4])  # this shold return a compiled network
+        network = load_network(network, image_size=boxes.shape[1:4])  # this should return a compiled network
 
     input_size = network.input_shape[-3:-1]
     input_channels = network.input_shape[-1]
