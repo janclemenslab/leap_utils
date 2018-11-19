@@ -14,9 +14,7 @@ def test_max2d():
     assert loc == (4, 5)
 
     X = np.zeros((10, 10))
-    # X[4, 5] = 1
     loc, amp = max2d(X)
-    print(loc, amp)
     assert amp == 0
     assert loc == (0, 0)
 
@@ -25,14 +23,14 @@ def test_max_simple():
     X = np.zeros((10, 10, 4))
     X[2, 4, 0] = 2
     positions, confidence = max_simple(X)
-    print(positions, confidence)
     assert positions[0, 0] == 2 and positions[0, 1] == 4
-    assert confidence[0] == 2
+    assert confidence[0] == 1
 
 
 def test_process_confmaps_simple():
     X = np.zeros((4, 10, 10, 4))
-    X[0, 2, 4, 0] = 2
+    X[0, 2, 4, 0] = 2.0
     positions, confidence = process_confmaps_simple(X)
     assert positions.shape == (4, 4, 2)
     assert confidence.shape == (4, 4, 1)
+    assert confidence[0, 0, 0] == 1
