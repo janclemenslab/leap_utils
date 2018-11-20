@@ -91,3 +91,21 @@ def normalize_boxes(X):
         X = X.astype("float32") / 255
 
     return X
+
+def get_angles(heads: np.array, tails: np.array) -> np.array:
+    """ Gets angles (to rotate in order to get fly looking up) from
+    head-tail axis for all the heads and tails coordinates given.
+
+    Arguments:
+        heads: [nframes, fly_id, coordinates(x,y)]
+        tails: [nframes, fly_id, coordinates(x,y)]
+    Returns:
+        fly_angles (in degrees): [nframes, fly_id, 1]
+
+    """
+    nframes, nflies = heads.shape[0:2]
+    fly_angles = np.zeros((nframes, nflies, 1))
+    for ifly in range(nflies):
+        fly_angles[:,ifly,0] = 90 + np.arctan2(heads[:,ifly,0]-tails[:,ifly,0],heads[:,ifly,1]-tails[:,ifly,1]) * 180 / np.pi
+
+    return fly_angles
