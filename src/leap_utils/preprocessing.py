@@ -92,6 +92,7 @@ def normalize_boxes(X):
 
     return X
 
+
 def get_angles(heads: np.array, tails: np.array) -> np.array:
     """ Gets angles (to rotate in order to get fly looking up) from
     head-tail axis for all the heads and tails coordinates given.
@@ -103,9 +104,44 @@ def get_angles(heads: np.array, tails: np.array) -> np.array:
         fly_angles (in degrees): [nframes, fly_id, 1]
 
     """
-    nframes, nflies = heads.shape[0:2]
-    fly_angles = np.zeros((nframes, nflies, 1))
-    for ifly in range(nflies):
-        fly_angles[:,ifly,0] = 90 + np.arctan2(heads[:,ifly,0]-tails[:,ifly,0],heads[:,ifly,1]-tails[:,ifly,1]) * 180 / np.pi
 
-    return fly_angles
+    nfly = heads.shape[1]
+    heads = nframes2nboxes(heads)
+    tails = nframes2nboxes(tails)
+
+    fly_angles = np.zeros((heads.shape[0],1))
+    fly_angles[:,0] = 90 + np.arctan2(heads[:,0]-tails[:,0],heads[:,1]-tails[:,1]) * 180 / np.pi
+
+    return nboxes2nframes(fly_angles,nfly)
+
+
+def nframes2nboxes(X: np.array) -> (np.array):
+    """ Converts np.arrays of shape [nframes,nfly...] into [nboxes, ...]
+
+
+    Arguments:
+        X: np.array [nframes, nfly, ...]
+    Returns:
+        Y: np.array [nboxes, ...]
+    """
+
+    Y = X.reshape((X.shape[0]*X.shape[1],*X.shape[2:]),order='F')
+
+    return Y
+
+
+def nboxes2nframes(Y: np.array, nfly: int=2) -> (np.array):
+    """ Converts np.arrays of shape [nboxes, ...] into [nframes,nfly...]
+
+
+    Arguments:
+        Y: np.array [nboxes, ...]
+        nfly: int=2
+    Returns:
+        X: np.array [nframes, nfly, ...]
+    """
+
+    X = Y.reshape((int(Y.shape[0]/nfly),nfly,*Y.shape[1:]),order='F')
+
+    return X
+
