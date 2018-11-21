@@ -5,7 +5,7 @@ import os
 from . import temp_dir
 
 from leap_utils.preprocessing import normalize_matlab_boxes
-from leap_utils.predict import load_network, predict_confmaps
+from leap_utils.predict import load_network, predict_confmaps, BoxSequence
 
 
 path_to_network = os.path.join(temp_dir, 'model.h5')
@@ -19,6 +19,25 @@ def test_load_network():
 
     m = load_network(path_to_network, image_size=(500, 500, 1))  # w/ resize
     assert np.all(m.output_shape == (None, 500, 500, 12))
+
+
+def test_BoxSequence():
+    # batch size
+    boxes = np.zeros((10, 12, 12, 1), dtype=np.uint8)
+    bs = BoxSequence(boxes, batch_size=5)
+    assert len(bs) == 2
+    assert bs[1].shape==(5, 12, 12, 1)
+
+    # batch overflow
+    boxes = np.zeros((11, 12, 12, 1), dtype=np.uint8)
+    bs = BoxSequence(boxes, batch_size=5)
+    assert bs[2].shape == (1, 12, 12, 1)
+
+    # batch size
+    boxes = np.zeros((10, 12, 12, 1), dtype=np.uint8)
+    bs = BoxSequence(boxes, batch_size=13)
+    assert len(bs) == 1
+    assert bs[0].shape==(10, 12, 12, 1)
 
 
 def test_predict_confmaps():

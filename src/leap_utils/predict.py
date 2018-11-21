@@ -5,7 +5,7 @@ import keras
 import numpy as np
 
 
-def load_network(model_path: str, weights_path: str = None, image_size: Sequence = None):
+def load_network(model_path: str, weights_path: str = None, image_size: Sequence = None) -> keras.Model:
     """Load network from file.
 
     Args:
@@ -38,7 +38,32 @@ def load_network(model_path: str, weights_path: str = None, image_size: Sequence
     return m
 
 
-def predict_confmaps(network: Union[str, keras.models.Model], boxes: np.array) -> np.array:
+# TODO:
+# - test with weird length (batch_size<nb_boxes,
+# - what happens if last batch is smaller than expeceted size)
+class BoxSequence(keras.utils.Sequence):
+    """Returns batches of boxes."""
+
+    def __init__(self, boxes: np.ndarray, batch_size: int) -> None:
+        """Initialize sequence.
+
+        Args:
+            boxes: np.ndarray [nb_box, width, height, channels]
+            batch_size: int
+        """
+        self.x = boxes
+        self.batch_size = batch_size
+
+    def __len__(self) -> int:
+        """Get number of batches."""
+        return int(np.ceil(len(self.x) / float(self.batch_size)))
+
+    def __getitem__(self, idx: int) -> np.ndarray:
+        """Get batch at idx in boz sequence."""
+        return self.x[idx * self.batch_size:(idx + 1) * self.batch_size, ...]
+
+
+def predict_confmaps(network: Union[str, keras.Model], boxes: np.ndarray, batch_size: int = 100) -> np.ndarray:
     """Predict confidence maps from images.
 
     Args:
@@ -46,6 +71,7 @@ def predict_confmaps(network: Union[str, keras.models.Model], boxes: np.array) -
         images: image - [nbox, w, h, chans]
     Returns:
         conf maps
+
     """
     if boxes.ndim is not 4:
         raise ValueError(f'`boxes` needs to be 4D - (nboxes, width, height, channels) - but has shape {boxes.shape}.')
@@ -60,6 +86,6 @@ def predict_confmaps(network: Union[str, keras.models.Model], boxes: np.array) -
     if boxes.shape[-3:-1] != input_size:
         raise ValueError(f'the network expects images of size {input_size} but boxes are of size {boxes.shape[-3:-1]}.')
 
-    confmaps = network.predict_on_batch(boxes)
-
+    data_gen = BoxSequence(boxes, batch_size)
+    confmaps = network.predict_generator(data_gen)
     return confmaps
