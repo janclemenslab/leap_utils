@@ -145,3 +145,38 @@ def nboxes2nframes(Y: np.array, nfly: int=2) -> (np.array):
 
     return X
 
+
+def detect_bad_boxes_byAngle(pred_positions: np.array, epsilon: float=10, head_idx: int=0, tail_idx: int=11, nfly: int=2) -> (np.array, np.array):
+    """ Calculates Head-Tail axis angle to vertical, and
+    selects cases that fall out of the threshold epsilon (in degrees).
+
+    Assumes that data of shape [nboxes, ...] is organized for nflies,
+    for example, if nfly = 2:
+        X = [ (box1_fly1, box1_fly2, box2_fly1, box2_fly2, ...), ...]
+
+    Arguments:
+        pred_positions: [nboxes, layers, 2]
+        head_idx: int=0
+        tail_idx: int=11
+        nfly: int=2
+    Returns:
+        fly_angles (in degrees): [nframes, fly_id, 1]
+        bad_boxes_byAngle: [nboxes, 1], where 1 = bad box, 0 = good box
+    """
+
+    # Initialize variables
+    nboxes = pred_positions.shape[0]
+    fly_angles = np.zeros((nboxes,1))
+    bad_boxes_byAngle = np.zeros((nboxes,1))
+
+    # Reshape coordinates
+    heads = nboxes2nframes(pred_positions[:,head_idx,:],nfly)
+    tails = nboxes2nframes(pred_positions[:,tail_idx,:],nfly)
+
+    # Get new angles
+    fly_angles = get_angles(heads,tails)
+
+    # Select bad cases according to epsilon
+    bad_boxes_byAngle = abs(fly_angles) > epsilon
+
+    return nboxes2nframes(fly_angles,nfly), bad_boxes_byAngle
