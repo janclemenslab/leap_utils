@@ -40,7 +40,7 @@ def export_boxes(frames: Sequence, box_centers: np.array, box_size: List[int],
     boxes = np.zeros((nb_boxes, *box_size, nb_channels), dtype=np.uint8)
     fly_id = -np.ones((nb_boxes,), dtype=np.intp)
     fly_frame = -np.ones((nb_boxes,), dtype=np.intp)
-
+    box_size = np.array(box_size)
     box_idx = -1
     for frame_number, frame in enumerate(frames):
         for fly_number in range(nb_flies):
@@ -48,24 +48,23 @@ def export_boxes(frames: Sequence, box_centers: np.array, box_size: List[int],
             fly_id[box_idx] = fly_number
             fly_frame[box_idx] = frame_number
             if box_angles is not None:
-                box = crop_frame(frame, box_centers[frame_number, fly_number, :], 1.5*np.array(box_size))  # crop larger box to get padding for rotation
+                box = crop_frame(frame, box_centers[frame_number, fly_number, :], 1.5*box_size)  # crop larger box to get padding for rotation
                 box = sk_rotate(box, box_angles[frame_number, fly_number, :],
                                 resize=False, mode='edge', preserve_range=True)
                 box = crop_frame(box, np.array(box.shape)/2, box_size)    # trim rotated box to the right size
             else:
-                box = crop_frame(frame, box_centers[frame_number, fly_number, :], np.array(box_size))
+                box = crop_frame(frame, box_centers[frame_number, fly_number, :], box_size)
             boxes[box_idx, ...] = box
 
     return boxes, fly_id, fly_frame
 
 
 def normalize_matlab_boxes(X, permute=(0, 3, 2, 1)):
-    """Normalizes shape and scale/dtype of input data.
+    """Normalize shape and scale/dtype of input data.
 
     This is only required if using boxes saved through matlab since matlab
     messes up the order of dimensions.
     """
-
     # Add singleton dim for single images
     if X.ndim == 3:
         X = X[None, ...]
@@ -81,8 +80,7 @@ def normalize_matlab_boxes(X, permute=(0, 3, 2, 1)):
 
 
 def normalize_boxes(X):
-    """ Normalizes scale/dtype of input data."""
-
+    """Normalize scale/dtype of input data."""
     # Add singleton dim for single images
     if X.ndim == 3:
         X = X[None, ...]
@@ -95,7 +93,7 @@ def normalize_boxes(X):
 
 
 def angles(heads: np.array, tails: np.array) -> np.array:
-    """ Gets angles (to rotate in order to get fly looking up) from
+    """Get angles (to rotate in order to get fly looking up) from
     head-tail axis for all the heads and tails coordinates given.
 
     Arguments:
@@ -105,7 +103,6 @@ def angles(heads: np.array, tails: np.array) -> np.array:
         fly_angles (in degrees): [nframes, fly_id, 1]
 
     """
-
     nfly = heads.shape[1]
     heads = nframes2nboxes(heads)
     tails = nframes2nboxes(tails)
@@ -117,8 +114,7 @@ def angles(heads: np.array, tails: np.array) -> np.array:
 
 
 def nframes2nboxes(X: np.array) -> (np.array):
-    """ Converts np.arrays of shape [nframes,nfly...] into [nboxes, ...]
-
+    """Convert np.arrays of shape [nframes,nfly...] into [nboxes, ...].
 
     Arguments:
         X: np.array [nframes, nfly, ...]
@@ -132,8 +128,7 @@ def nframes2nboxes(X: np.array) -> (np.array):
 
 
 def nboxes2nframes(Y: np.array, nfly: int = 2) -> (np.array):
-    """ Converts np.arrays of shape [nboxes, ...] into [nframes,nfly...]
-
+    """Convert np.arrays of shape [nboxes, ...] into [nframes,nfly...].
 
     Arguments:
         Y: np.array [nboxes, ...]
@@ -148,8 +143,7 @@ def nboxes2nframes(Y: np.array, nfly: int = 2) -> (np.array):
 
 
 def detect_bad_boxes_by_angle(pred_positions: np.array, epsilon: float = 10, head_idx: int = 0, tail_idx: int = 11, nfly: int = 2) -> (np.array, np.array):
-    """ Calculates Head-Tail axis angle to vertical, and
-    selects cases that fall out of the threshold epsilon (in degrees).
+    """Calculate Head-Tail axis angle to vertical, and selects cases that fall out of the threshold epsilon (in degrees).
 
     Assumes that data of shape [nboxes, ...] is organized for nflies,
     for example, if nfly = 2:
@@ -164,29 +158,15 @@ def detect_bad_boxes_by_angle(pred_positions: np.array, epsilon: float = 10, hea
         fly_angles (in degrees): [nframes, fly_id, 1]
         bad_boxes_byAngle: [nboxes, 1], where 1 = bad box, 0 = good box
     """
-
-    # Initialize variables
-    nboxes = pred_positions.shape[0]
-    fly_angles = np.zeros((nboxes, 1))
-    bad_boxes_byAngle = np.zeros((nboxes, 1))
-
-    # Reshape coordinates (CURRENTLY NOT WORKING, BUT THIS WOULD BE SHORTER/ MORE ELEGANT)
-    # heads = nboxes2nframes(pred_positions[:,head_idx,:],nfly)
-    # tails = nboxes2nframes(pred_positions[:,tail_idx,:],nfly)
-
-    # Reshape coordinates
+    # Reshape coordinates - should be done by nboxes2nframes
     heads = np.zeros((int(pred_positions.shape[0]/nfly), nfly, 2))
     tails = np.zeros(heads.shape)
     heads[:, 0, :], heads[:, 1, :] = pred_positions[::2, head_idx, :], pred_positions[1::2, head_idx, :]
     tails[:, 0, :], tails[:, 1, :] = pred_positions[::2, tail_idx, :], pred_positions[1::2, tail_idx, :]
 
-    # Get new angles
     fly_angles = angles(heads, tails)
-
-    # Select bad cases according to epsilon
-    bad_boxes_byAngle = abs(fly_angles) > epsilon
-
-    return fly_angles, bad_boxes_byAngle
+    bad_boxes = abs(fly_angles) > epsilon
+    return fly_angles, bad_boxes
 
 
 def smooth(x, N):
