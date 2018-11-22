@@ -1,13 +1,33 @@
 import numpy as np
+import skimage.filters
+import skimage.feature
+
+from .utils import it
 
 
-def max2d(X: np.array) -> (tuple, float):
+# TODO:
+# - return max values
+# - "overload" max2d via num_peaks argument
+def max2d_multi(mask: np.ndarray, num_peaks: int, smooth: float = None,
+                   exclude_border: bool = True, min_distance: int = 4) -> (np.ndarray, np.ndarray):
+    """Detect one or multiple peaks in each channel of an image."""
+    maxima = np.ndarray((2, num_peaks, mask.shape[-1]))
+    for idx, plane in enumerate(it(mask, axis=-1)):
+        if smooth:
+            plane = skimage.filters.gaussian(plane, smooth)
+        tmp = skimage.feature.peak_local_max(plane, num_peaks=num_peaks, exclude_border=exclude_border, min_distance=min_distance)
+        print(tmp)
+        maxima[..., idx] = tmp
+    return maxima
+
+
+def max2d(X: np.ndarray) -> (tuple, float):
     """Get position and value of array maximum."""
     row, col = np.unravel_index(X.argmax(), X.shape)
     return (row, col), X[row, col]
 
 
-def max_simple(confmap: np.array) -> (np.array, np.array):
+def max_simple(confmap: np.ndarray) -> (np.ndarray, np.ndarray):
     """Detect maxima in each layer of the confmap.
 
     prob is val at max pos, normalized by sum over all values in respective layer.
@@ -32,7 +52,7 @@ def max_simple(confmap: np.array) -> (np.array, np.array):
     return peak_loc, peak_prb
 
 
-def process_confmaps_simple(confmaps: np.array) -> (np.array, np.array):
+def process_confmaps_simple(confmaps: np.ndarray) -> (np.ndarray, np.ndarray):
     """Simply take the max.
 
     Arguments:
@@ -50,7 +70,7 @@ def process_confmaps_simple(confmaps: np.array) -> (np.array, np.array):
     return positions, confidence
 
 
-def process_confmaps_bayesian(confmaps: np.array, prior_information) -> (np.array, np.array):
+def process_confmaps_bayesian(confmaps: np.ndarray, prior_information) -> (np.ndarray, np.ndarray):
     """Take all local maxime (using skimage), choose maximum based in prio info and confidence."""
     positions = None
     confidence = None
