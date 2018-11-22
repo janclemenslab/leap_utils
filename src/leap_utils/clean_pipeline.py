@@ -4,7 +4,7 @@ import logging
 import deepdish as dd
 import numpy as np
 from videoreader import VideoReader
-from leap_utils.preprocessing import export_boxes, get_angles, normalize_boxes, detect_bad_boxes_byAngle, adrian_fix_tracks
+from leap_utils.preprocessing import export_boxes, angles, normalize_boxes, detect_bad_boxes_byAngle, fix_orientations
 from leap_utils.postprocessing import process_confmaps_simple
 from leap_utils.predict import predict_confmaps
 from leap_utils.plot import vplay
@@ -26,8 +26,8 @@ doprediction = True
 dataPath = r'Z:\#Common\chainingmic\dat.processed'
 resPath = r'Z:\#Common\chainingmic\res'
 path = r'Z:\#Common\adrian\Workspace\projects\preprocessing\src\preprocessing'
-networkPath = r'Z:\#Common\adrian\Workspace\temp\181029_122243-n=1450\best_model.h5'  # Model from fast train
-# networkPath = r'Z:\#Common\adrian\Workspace\temp\leapermodels\chainingmic_2018-11-20_17-33.best.h5' # Last full training model
+# networkPath = r'Z:\#Common\adrian\Workspace\temp\181029_122243-n=1450\best_model.h5'  # Model from fast train
+networkPath = r'Z:\#Common\adrian\Workspace\temp\leapermodels\chainingmic_2018-11-20_17-33.best.h5' # Last full training model
 
 def main(expID: str='localhost-20180720_182837',frame_start: int=1000, frame_stop: int=2000, frame_step: int=100):
 
@@ -42,8 +42,8 @@ def main(expID: str='localhost-20180720_182837',frame_start: int=1000, frame_sto
 
     # Do not fix if they are already fixed
     if not os.path.exists(trackfixedPath):
-        logging.info(f"   doing adrian_fix_tracks")
-        adrian_fix_tracks(trackPath,trackfixedPath)
+        logging.info(f"   doing fix_tracks")
+        fix_tracks(trackPath,trackfixedPath)
     else:
         logging.info(f"   fixed tracks already exist")
 
@@ -84,7 +84,7 @@ def main(expID: str='localhost-20180720_182837',frame_start: int=1000, frame_sto
 
     ## Calculate angle for export boxes
     logging.info(f"   calculating box angles.")
-    box_angles = get_angles(heads[frame_range,...],tails[frame_range,...])
+    box_angles = angles(heads[frame_range,...],tails[frame_range,...])
 
     ## Export boxes function
     logging.info(f"   exporting boxes of {expID}.")
@@ -97,6 +97,24 @@ def main(expID: str='localhost-20180720_182837',frame_start: int=1000, frame_sto
     confmaps = predict_confmaps(networkPath, boxes[:,:,:,:1])
     logging.info(f"   processing confidence maps.")
     positions, confidence = process_confmaps_simple(confmaps)
+
+
+    ## First check of results for first 5 flies
+    import matplotlib.pyplot as plt
+
+    plt.ion()
+
+    nfirst = 10
+    for ifly in range(0,nfirst,2):
+        plt.figure(20+ifly,figsize=[16, 3])
+        for bp in range(12):
+            plt.subplot(2, 12, bp+1)
+            plt.imshow(boxes[ifly,...])
+            plt.plot(positions[ifly,bp,1],positions[ifly,bp,0],'r+')
+            plt.subplot(2, 12, 12+bp+1)
+            plt.imshow(confmaps[ifly,:,:,bp])
+            plt.plot(positions[ifly,bp,1],positions[ifly,bp,0],'r+')
+        plt.tight_layout()
 
     ## Recalculation of angles for further orientation fix
     logging.info(f"   recalculating box angles.")
@@ -125,6 +143,19 @@ def main(expID: str='localhost-20180720_182837',frame_start: int=1000, frame_sto
     if play_boxes:
         logging.info(f"   playing video of boxes.")
         vplay(boxes[fly_id == 0,...])
+
+def fix_tracks(track_file_name: str, save_file_name: str):
+    """Loads data, calls fix_orientations and saves data. Does not need fixtracks.py nor fix_orientation.py anymore"""
+
+    logging.info(f"   processing tracks in {track_file_name}. will save to {save_file_name}")
+    # read tracking data
+    data = dd.io.load(track_file_name)
+    # fix lines and get chaining IndexError
+    data['lines'] = fix_orientations(data['lines'])
+    logging.info(f"   saving chaining data to {save_file_name}")
+	# saving fixed tracking data
+    dd.io.save(save_file_name, data)
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

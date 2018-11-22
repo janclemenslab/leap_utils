@@ -2,7 +2,6 @@ from typing import Sequence, Union, List
 import numpy as np
 from skimage.transform import rotate as sk_rotate
 import deepdish as dd
-import logging
 import scipy.signal
 
 
@@ -96,7 +95,7 @@ def normalize_boxes(X):
     return X
 
 
-def get_angles(heads: np.array, tails: np.array) -> np.array:
+def angles(heads: np.array, tails: np.array) -> np.array:
     """ Gets angles (to rotate in order to get fly looking up) from
     head-tail axis for all the heads and tails coordinates given.
 
@@ -183,7 +182,7 @@ def detect_bad_boxes_byAngle(pred_positions: np.array, epsilon: float=10, head_i
     tails[:,0,:], tails[:,1,:] = pred_positions[::2,tail_idx,:], pred_positions[1::2,tail_idx,:]
 
     # Get new angles
-    fly_angles = get_angles(heads,tails)
+    fly_angles = angles(heads,tails)
 
     # Select bad cases according to epsilon
     bad_boxes_byAngle = abs(fly_angles) > epsilon
@@ -254,15 +253,3 @@ def fix_orientations(lines0, chamber_number=0):
         # 4. swap head and tail
         lines_fixed[ynew < 0, chamber_number, fly, :, :] = lines_fixed[ynew < 0, chamber_number, fly, ::-1, :]
     return lines_fixed
-
-def adrian_fix_tracks(track_file_name: str, save_file_name: str):
-    """Loads data, calls fix_orientations and saves data. Does not need fixtracks.py nor fix_orientation.py anymore"""
-    
-    print('processing tracks in {0}. will save to {1}'.format(track_file_name, save_file_name))
-    # read tracking data
-    data = dd.io.load(track_file_name)
-    # fix lines and get chaining IndexError
-    data['lines'] = fix_orientations(data['lines'])
-    print(f'saving chaining data to {save_file_name}')
-	# saving fixed tracking data
-    dd.io.save(save_file_name, data)
