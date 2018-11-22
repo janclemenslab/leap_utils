@@ -4,15 +4,14 @@ import logging
 import deepdish as dd
 import numpy as np
 from videoreader import VideoReader
-from leap_utils.preprocessing import export_boxes, angles, normalize_boxes, detect_bad_boxes_by_angle, fix_orientations, nframes2nboxes, nboxes2nframes
+from leap_utils.preprocessing import export_boxes, angles, normalize_boxes, detect_bad_boxes_by_angle, fix_orientations
 from leap_utils.postprocessing import process_confmaps_simple
 from leap_utils.predict import predict_confmaps, load_network
-from leap_utils.utils import iswin,  ismac
+from leap_utils.utils import iswin, ismac, flatten, unflatten
 
 # Plot stuff
 play_boxes = True
 inspect_flies = False
-
 # Paths
 if iswin():
     root = 'Z:/#Common/'
@@ -128,12 +127,12 @@ def process_batch(network, frames, box_centers, box_angles, box_size):
                                                          positions[:, tail_idx:tail_idx+1, :],
                                                          epsilon=5)
     # TODO: figure out better way of shaping things
-    bad_boxes = nframes2nboxes(bad_boxes)
+    bad_boxes = flatten(bad_boxes)
     logging.info(f"   found {np.sum(bad_boxes)} cases of boxes with angles above threshold.")
     logging.info(f"   re-exporting boxes.")
 
-    # TODO: Only re-process bad_boxes
-    fixed_angles = box_angles + nboxes2nframes(newbox_angles[..., 0], nb_flies)
+    # TODO: Only re-process bad_boxes - but this will require reshaping things...
+    fixed_angles = box_angles + unflatten(newbox_angles[..., 0], nb_flies)
     boxes, fly_id, fly_frame = export_boxes(frames,
                                             box_centers,
                                             box_size=np.array([120, 120]),
@@ -143,7 +142,8 @@ def process_batch(network, frames, box_centers, box_angles, box_size):
     confmaps = predict_confmaps(network, normalize_boxes(boxes))
     logging.info(f"   re-processing confidence maps.")
     positions, confidence = process_confmaps_simple(confmaps)
-    return positions, confidence, confmaps, bad_boxes, fly_id, fly_frame, boxes, nframes2nboxes(fixed_angles)
+    fixed_angles = flatten(fixed_angles)
+    return positions, confidence, confmaps, bad_boxes, fly_id, fly_frame, boxes, fixed_angles
 
 
 def fix_tracks(track_file_name: str, save_file_name: str):

@@ -2,12 +2,13 @@ import numpy as np
 import skimage.filters
 import skimage.feature
 
-from .utils import it
+from .utils import it, max2d
 
 
 # TODO:
 # - return max values
-# - "overload" max2d via num_peaks argument
+# - "overload" max2d via num_peaks argument?
+# - reorganize and to utils
 def max2d_multi(mask: np.ndarray, num_peaks: int, smooth: float = None,
                    exclude_border: bool = True, min_distance: int = 4) -> (np.ndarray, np.ndarray):
     """Detect one or multiple peaks in each channel of an image."""
@@ -19,12 +20,6 @@ def max2d_multi(mask: np.ndarray, num_peaks: int, smooth: float = None,
         print(tmp)
         maxima[..., idx] = tmp
     return maxima
-
-
-def max2d(X: np.ndarray) -> (tuple, float):
-    """Get position and value of array maximum."""
-    row, col = np.unravel_index(X.argmax(), X.shape)
-    return (row, col), X[row, col]
 
 
 def max_simple(confmap: np.ndarray) -> (np.ndarray, np.ndarray):

@@ -3,6 +3,8 @@ import numpy as np
 from skimage.transform import rotate as sk_rotate
 import scipy.signal
 
+from .utils import smooth, flatten, unflatten
+
 
 def crop_frame(frame: np.array, center: np.uintp, box_size: np.uintp, mode: str = 'clip') -> np.array:
     """Crop frame.
@@ -92,6 +94,7 @@ def normalize_boxes(X):
 
 
 # TODO: should not reshape stuff here, simplify inputs
+# TODO: - to utils  if simplfied
 def angles(heads: np.array, tails: np.array) -> np.array:
     """Get angles (to rotate in order to get fly looking up) from
     head-tail axis for all the heads and tails coordinates given.
@@ -104,46 +107,16 @@ def angles(heads: np.array, tails: np.array) -> np.array:
 
     """
     nfly = heads.shape[1]
-    heads = nframes2nboxes(heads)
-    tails = nframes2nboxes(tails)
+    heads = flatten(heads)
+    tails = flatten(tails)
 
     fly_angles = np.zeros((heads.shape[0], 1))
     fly_angles[:, 0] = 90 + np.arctan2(heads[:, 0]-tails[:, 0], heads[:, 1]-tails[:, 1]) * 180 / np.pi
 
-    return nboxes2nframes(fly_angles, nfly)
+    return unflatten(fly_angles, nfly)
 
 
-# TODO: got to utils
-def nframes2nboxes(X: np.array) -> (np.array):
-    """Convert np.arrays of shape [nframes,nfly...] into [nboxes, ...].
-
-    Arguments:
-        X: np.array [nframes, nfly, ...]
-    Returns:
-        Y: np.array [nboxes, ...]
-    """
-
-    Y = X.reshape((X.shape[0]*X.shape[1], *X.shape[2:]), order='F')
-
-    return Y
-
-
-# TODO: should go to utils, nb_flies mandatory w/o default
-def nboxes2nframes(Y: np.array, nfly: int = 2) -> (np.array):
-    """Convert np.arrays of shape [nboxes, ...] into [nframes,nfly...].
-
-    Arguments:
-        Y: np.array [nboxes, ...]
-        nfly: int=2
-    Returns:
-        X: np.array [nframes, nfly, ...]
-    """
-
-    X = Y.reshape((int(Y.shape[0]/nfly), nfly, *Y.shape[1:]), order='F')
-
-    return X
-
-
+# to post processing; change order of returns to better reflect naming? angles as inputs?
 def detect_bad_boxes_by_angle(heads: np.ndarray, tails: np.ndarray, epsilon: float = 10) -> (np.array, np.array):
     """Calculate Head-Tail axis angle rel. to vertical. Mark cases that fall out of the threshold epsilon (in degrees).
 
@@ -157,11 +130,6 @@ def detect_bad_boxes_by_angle(heads: np.ndarray, tails: np.ndarray, epsilon: flo
     fly_angles = angles(heads, tails)
     bad_boxes = abs(fly_angles) > epsilon
     return fly_angles, bad_boxes
-
-
-def smooth(x, N):
-    """Smooth signal using box filter of length N samples."""
-    return np.convolve(x, np.ones((N,)) / N, mode='full')[(N - 1):]
 
 
 def fix_orientations(lines0, chamber_number=0):

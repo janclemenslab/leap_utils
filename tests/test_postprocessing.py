@@ -1,21 +1,5 @@
 import numpy as np
-
-# from . import temp_dir
-
-from leap_utils.postprocessing import max2d, max_simple, process_confmaps_simple
-
-
-def test_max2d():
-    X = np.zeros((10, 10))
-    X[4, 5] = 1
-    loc, amp = max2d(X)
-    assert amp == 1
-    assert loc == (4, 5)
-
-    X = np.zeros((10, 10))
-    loc, amp = max2d(X)
-    assert amp == 0
-    assert loc == (0, 0)
+from leap_utils.postprocessing import max_simple, process_confmaps_simple
 
 
 def test_max_simple():
