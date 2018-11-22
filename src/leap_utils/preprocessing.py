@@ -1,7 +1,6 @@
 from typing import Sequence, Union, List
 import numpy as np
 from skimage.transform import rotate as sk_rotate
-import deepdish as dd
 import scipy.signal
 
 
