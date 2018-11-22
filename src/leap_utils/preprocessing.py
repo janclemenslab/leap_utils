@@ -34,7 +34,6 @@ def export_boxes(frames: Sequence, box_centers: np.array, box_size: List[int],
     nb_channels = frames[0].shape[-1]
     nb_flies = box_centers.shape[1]
     nb_boxes = nb_frames*nb_flies
-    # check input:
 
     # make this a dict?
     boxes = np.zeros((nb_boxes, *box_size, nb_channels), dtype=np.uint8)
@@ -92,6 +91,7 @@ def normalize_boxes(X):
     return X
 
 
+# TODO: should not reshape stuff here, simplify inputs
 def angles(heads: np.array, tails: np.array) -> np.array:
     """Get angles (to rotate in order to get fly looking up) from
     head-tail axis for all the heads and tails coordinates given.
@@ -113,6 +113,7 @@ def angles(heads: np.array, tails: np.array) -> np.array:
     return nboxes2nframes(fly_angles, nfly)
 
 
+# TODO: got to utils
 def nframes2nboxes(X: np.array) -> (np.array):
     """Convert np.arrays of shape [nframes,nfly...] into [nboxes, ...].
 
@@ -127,6 +128,7 @@ def nframes2nboxes(X: np.array) -> (np.array):
     return Y
 
 
+# TODO: should go to utils, nb_flies mandatory w/o default
 def nboxes2nframes(Y: np.array, nfly: int = 2) -> (np.array):
     """Convert np.arrays of shape [nboxes, ...] into [nframes,nfly...].
 
@@ -142,28 +144,16 @@ def nboxes2nframes(Y: np.array, nfly: int = 2) -> (np.array):
     return X
 
 
-def detect_bad_boxes_by_angle(pred_positions: np.array, epsilon: float = 10, head_idx: int = 0, tail_idx: int = 11, nfly: int = 2) -> (np.array, np.array):
-    """Calculate Head-Tail axis angle to vertical, and selects cases that fall out of the threshold epsilon (in degrees).
-
-    Assumes that data of shape [nboxes, ...] is organized for nflies,
-    for example, if nfly = 2:
-        X = [ (box1_fly1, box1_fly2, box2_fly1, box2_fly2, ...), ...]
+def detect_bad_boxes_by_angle(heads: np.ndarray, tails: np.ndarray, epsilon: float = 10) -> (np.array, np.array):
+    """Calculate Head-Tail axis angle rel. to vertical. Mark cases that fall out of the threshold epsilon (in degrees).
 
     Arguments:
-        pred_positions: [nboxes, layers, 2]
-        head_idx: int=0
-        tail_idx: int=11
-        nfly: int=2
+        heads, tails: [nboxes, 2]
+
     Returns:
-        fly_angles (in degrees): [nframes, fly_id, 1]
+        fly_angles (in degrees): [nboxes, 1]
         bad_boxes_byAngle: [nboxes, 1], where 1 = bad box, 0 = good box
     """
-    # Reshape coordinates - should be done by nboxes2nframes
-    heads = np.zeros((int(pred_positions.shape[0]/nfly), nfly, 2))
-    tails = np.zeros(heads.shape)
-    heads[:, 0, :], heads[:, 1, :] = pred_positions[::2, head_idx, :], pred_positions[1::2, head_idx, :]
-    tails[:, 0, :], tails[:, 1, :] = pred_positions[::2, tail_idx, :], pred_positions[1::2, tail_idx, :]
-
     fly_angles = angles(heads, tails)
     bad_boxes = abs(fly_angles) > epsilon
     return fly_angles, bad_boxes
