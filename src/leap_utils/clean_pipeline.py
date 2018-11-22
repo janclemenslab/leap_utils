@@ -20,14 +20,14 @@ Last updated: 22.11.2018 - 14:41 [Adrian]
 
 ## Plot stuff
 play_boxes = True
-doprediction = True
+inspect_flies = False
 
 ## Paths
 dataPath = r'Z:\#Common\chainingmic\dat.processed'
 resPath = r'Z:\#Common\chainingmic\res'
 path = r'Z:\#Common\adrian\Workspace\projects\preprocessing\src\preprocessing'
-# networkPath = r'Z:\#Common\adrian\Workspace\temp\181029_122243-n=1450\best_model.h5'  # Model from fast train
-networkPath = r'Z:\#Common\adrian\Workspace\temp\leapermodels\chainingmic_2018-11-20_17-33.best.h5' # Last full training model
+networkPath = r'Z:\#Common\adrian\Workspace\temp\181029_122243-n=1450\best_model.h5'  # Model from fast train
+# networkPath = r'Z:\#Common\adrian\Workspace\temp\leapermodels\chainingmic_2018-11-20_17-33.best.h5' # Last full training model
 
 def main(expID: str='localhost-20180720_182837',frame_start: int=1000, frame_stop: int=2000, frame_step: int=100):
 
@@ -100,21 +100,22 @@ def main(expID: str='localhost-20180720_182837',frame_start: int=1000, frame_sto
 
 
     ## First check of results for first 5 flies
-    import matplotlib.pyplot as plt
+    if inspect_flies:
+        import matplotlib.pyplot as plt
 
-    plt.ion()
+        plt.ion()
 
-    nfirst = 10
-    for ifly in range(0,nfirst,2):
-        plt.figure(20+ifly,figsize=[16, 3])
-        for bp in range(12):
-            plt.subplot(2, 12, bp+1)
-            plt.imshow(boxes[ifly,...])
-            plt.plot(positions[ifly,bp,1],positions[ifly,bp,0],'r+')
-            plt.subplot(2, 12, 12+bp+1)
-            plt.imshow(confmaps[ifly,:,:,bp])
-            plt.plot(positions[ifly,bp,1],positions[ifly,bp,0],'r+')
-        plt.tight_layout()
+        nfirst = 10
+        for ifly in range(0,nfirst,2):
+            plt.figure(20+ifly,figsize=[16, 3])
+            for bp in range(12):
+                plt.subplot(2, 12, bp+1)
+                plt.imshow(boxes[ifly,...])
+                plt.plot(positions[ifly,bp,1],positions[ifly,bp,0],'r+')
+                plt.subplot(2, 12, 12+bp+1)
+                plt.imshow(confmaps[ifly,:,:,bp])
+                plt.plot(positions[ifly,bp,1],positions[ifly,bp,0],'r+')
+            plt.tight_layout()
 
     ## Recalculation of angles for further orientation fix
     logging.info(f"   recalculating box angles.")
