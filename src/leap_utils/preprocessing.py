@@ -4,7 +4,7 @@ from skimage.transform import rotate as sk_rotate
 import scipy.signal
 
 
-def crop_frame(frame: np.array, center: np.uintp, box_size: np.uintp, mode: str='clip') -> np.array:
+def crop_frame(frame: np.array, center: np.uintp, box_size: np.uintp, mode: str = 'clip') -> np.array:
     """Crop frame.
 
     frame: np.array, center: np.uintp, box_size: np.uintp, mode: str='clip'
@@ -17,7 +17,7 @@ def crop_frame(frame: np.array, center: np.uintp, box_size: np.uintp, mode: str=
 
 
 def export_boxes(frames: Sequence, box_centers: np.array, box_size: List[int],
-                 box_angles: np.array=None) -> (np.array, np.array, np.array):
+                 box_angles: np.array = None) -> (np.array, np.array, np.array):
     """Export boxes.
 
     Args:
@@ -110,10 +110,10 @@ def angles(heads: np.array, tails: np.array) -> np.array:
     heads = nframes2nboxes(heads)
     tails = nframes2nboxes(tails)
 
-    fly_angles = np.zeros((heads.shape[0],1))
-    fly_angles[:,0] = 90 + np.arctan2(heads[:,0]-tails[:,0],heads[:,1]-tails[:,1]) * 180 / np.pi
+    fly_angles = np.zeros((heads.shape[0], 1))
+    fly_angles[:, 0] = 90 + np.arctan2(heads[:, 0]-tails[:, 0], heads[:, 1]-tails[:, 1]) * 180 / np.pi
 
-    return nboxes2nframes(fly_angles,nfly)
+    return nboxes2nframes(fly_angles, nfly)
 
 
 def nframes2nboxes(X: np.array) -> (np.array):
@@ -126,12 +126,12 @@ def nframes2nboxes(X: np.array) -> (np.array):
         Y: np.array [nboxes, ...]
     """
 
-    Y = X.reshape((X.shape[0]*X.shape[1],*X.shape[2:]),order='F')
+    Y = X.reshape((X.shape[0]*X.shape[1], *X.shape[2:]), order='F')
 
     return Y
 
 
-def nboxes2nframes(Y: np.array, nfly: int=2) -> (np.array):
+def nboxes2nframes(Y: np.array, nfly: int = 2) -> (np.array):
     """ Converts np.arrays of shape [nboxes, ...] into [nframes,nfly...]
 
 
@@ -142,12 +142,12 @@ def nboxes2nframes(Y: np.array, nfly: int=2) -> (np.array):
         X: np.array [nframes, nfly, ...]
     """
 
-    X = Y.reshape((int(Y.shape[0]/nfly),nfly,*Y.shape[1:]),order='F')
+    X = Y.reshape((int(Y.shape[0]/nfly), nfly, *Y.shape[1:]), order='F')
 
     return X
 
 
-def detect_bad_boxes_byAngle(pred_positions: np.array, epsilon: float=10, head_idx: int=0, tail_idx: int=11, nfly: int=2) -> (np.array, np.array):
+def detect_bad_boxes_by_angle(pred_positions: np.array, epsilon: float = 10, head_idx: int = 0, tail_idx: int = 11, nfly: int = 2) -> (np.array, np.array):
     """ Calculates Head-Tail axis angle to vertical, and
     selects cases that fall out of the threshold epsilon (in degrees).
 
@@ -167,26 +167,27 @@ def detect_bad_boxes_byAngle(pred_positions: np.array, epsilon: float=10, head_i
 
     # Initialize variables
     nboxes = pred_positions.shape[0]
-    fly_angles = np.zeros((nboxes,1))
-    bad_boxes_byAngle = np.zeros((nboxes,1))
+    fly_angles = np.zeros((nboxes, 1))
+    bad_boxes_byAngle = np.zeros((nboxes, 1))
 
     # Reshape coordinates (CURRENTLY NOT WORKING, BUT THIS WOULD BE SHORTER/ MORE ELEGANT)
     # heads = nboxes2nframes(pred_positions[:,head_idx,:],nfly)
     # tails = nboxes2nframes(pred_positions[:,tail_idx,:],nfly)
 
     # Reshape coordinates
-    heads = np.zeros((int(pred_positions.shape[0]/nfly),nfly,2))
+    heads = np.zeros((int(pred_positions.shape[0]/nfly), nfly, 2))
     tails = np.zeros(heads.shape)
-    heads[:,0,:], heads[:,1,:] = pred_positions[::2,head_idx,:], pred_positions[1::2,head_idx,:]
-    tails[:,0,:], tails[:,1,:] = pred_positions[::2,tail_idx,:], pred_positions[1::2,tail_idx,:]
+    heads[:, 0, :], heads[:, 1, :] = pred_positions[::2, head_idx, :], pred_positions[1::2, head_idx, :]
+    tails[:, 0, :], tails[:, 1, :] = pred_positions[::2, tail_idx, :], pred_positions[1::2, tail_idx, :]
 
     # Get new angles
-    fly_angles = angles(heads,tails)
+    fly_angles = angles(heads, tails)
 
     # Select bad cases according to epsilon
     bad_boxes_byAngle = abs(fly_angles) > epsilon
 
     return fly_angles, bad_boxes_byAngle
+
 
 def smooth(x, N):
     """Smooth signal using box filter of length N samples."""

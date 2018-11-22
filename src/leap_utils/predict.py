@@ -38,9 +38,6 @@ def load_network(model_path: str, weights_path: str = None, image_size: Sequence
     return m
 
 
-# TODO:
-# - test with weird length (batch_size<nb_boxes,
-# - what happens if last batch is smaller than expeceted size)
 class BoxSequence(keras.utils.Sequence):
     """Returns batches of boxes."""
 
