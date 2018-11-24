@@ -22,7 +22,7 @@ resPath = root+'chainingmic/res'
 networkPath = root+'chainingmic/dat/best_model.h5'
 
 
-def main(expID: str, *, frame_start: int = 0, frame_stop: int = None, frame_step: int = 1, batch_size: int = 100):
+def main(expID: str, *, frame_start: int = 0, frame_stop: int = None, frame_step: int = 1, batch_size: int = 100, save_interval: int = 100):
     # Fix tracks
     # Paths
     trackPath = f"{dataPath}/{expID}/{expID}_tracks.h5"
@@ -102,6 +102,12 @@ def main(expID: str, *, frame_start: int = 0, frame_stop: int = None, frame_step
         frames = [frame[:, :, :1] for frame in vr[batch_frame_numbers]]  # keep only one color channel
         positions[batch_box_numbers, ...], confidence[batch_box_numbers, ...], _, bad_boxes[batch_box_numbers, ...], fly_id[batch_box_numbers], fly_frame[batch_box_numbers], _, fixed_angles[batch_box_numbers, ...] = process_batch(
             network, frames, box_centers[batch_frame_numbers, ...], box_angles[batch_frame_numbers, ...], box_size)
+        # Saving data
+        if batch_num % save_interval == 0:
+            logging.info(f"   saving intermediate results in batch {batch_num} to {posePath}.")
+            posedata = {'positions': positions, 'confidence': confidence, 'expID': expID, 'fixed_angles': fixed_angles,
+                        'frame_numbers': frame_numbers, 'fly_id': fly_id, 'fly_frame': fly_frame, 'bad_boxes': bad_boxes}
+            dd.io.save(posePath, posedata)
     # Saving data
     logging.info(f"   saving poses to {posePath}.")
     posedata = {'positions': positions, 'confidence': confidence, 'expID': expID, 'fixed_angles': fixed_angles,
