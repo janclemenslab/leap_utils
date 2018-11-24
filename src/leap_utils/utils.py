@@ -30,7 +30,7 @@ def flatten(X: np.ndarray) -> (np.ndarray):
     Returns:
         X: np.ndarray [dim1 * dim2, ...]
     """
-    return X.reshape((X.shape[0]*X.shape[1], *X.shape[2:]), order='F')
+    return X.reshape((X.shape[0]*X.shape[1], *X.shape[2:]), order='A')
 
 
 def unflatten(X: np.ndarray, dim2_len: int = 2) -> (np.ndarray):
@@ -42,7 +42,7 @@ def unflatten(X: np.ndarray, dim2_len: int = 2) -> (np.ndarray):
     Returns:
         X: np.ndarray [dim1_len, dim2_len, ...]
     """
-    return X.reshape((int(X.shape[0]/dim2_len), dim2_len, *X.shape[1:]), order='F')
+    return X.reshape((int(X.shape[0]/dim2_len), dim2_len, *X.shape[1:]), order='A')
 
 
 def smooth(x, N):
