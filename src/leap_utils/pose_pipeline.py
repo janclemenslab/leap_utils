@@ -85,7 +85,7 @@ def main(expID: str, *, frame_start: int = 0, frame_stop: int = None, frame_step
 
     # maybe make these h5py.Datasets and save directly
     # with h5py.File( 'w') as f:
-        # positions = f.create_dataset("positions", (nb_boxes, nb_parts, 2), chunk=True)
+    # positions = f.create_dataset("positions", (nb_boxes, nb_parts, 2), chunk=True)
     positions = np.zeros((nb_boxes, nb_parts, 2), dtype=np.uint16)
     confidence = np.zeros((nb_boxes, nb_parts, 1), dtype=np.float16)
     bad_boxes = np.zeros((nb_boxes, 1), dtype=np.bool)
@@ -100,7 +100,8 @@ def main(expID: str, *, frame_start: int = 0, frame_stop: int = None, frame_step
         batch_box_numbers = list(range(batch_idx[batch_num]*nb_flies, batch_idx[batch_num+1]*nb_flies))
         logging.info(f"   loading frames.")
         frames = [frame[:, :, :1] for frame in vr[batch_frame_numbers]]  # keep only one color channel
-        positions[batch_box_numbers, ...], confidence[batch_box_numbers, ...], _, bad_boxes[batch_box_numbers, ...], fly_id[batch_box_numbers], fly_frame[batch_box_numbers], _, fixed_angles[batch_box_numbers, ...] = process_batch(network, frames, box_centers[batch_frame_numbers, ...], box_angles[batch_frame_numbers, ...], box_size)
+        positions[batch_box_numbers, ...], confidence[batch_box_numbers, ...], _, bad_boxes[batch_box_numbers, ...], fly_id[batch_box_numbers], fly_frame[batch_box_numbers], _, fixed_angles[batch_box_numbers, ...] = process_batch(
+            network, frames, box_centers[batch_frame_numbers, ...], box_angles[batch_frame_numbers, ...], box_size)
     # Saving data
     logging.info(f"   saving poses to {posePath}.")
     posedata = {'positions': positions, 'confidence': confidence, 'expID': expID, 'fixed_angles': fixed_angles,
@@ -122,7 +123,6 @@ def process_batch(network, frames, box_centers, box_angles, box_size):
     tail_idx = 11
     nb_flies = box_angles.shape[1]
 
-
     ## ADRIAN TEMP FIX TO PROBLEMS WITH RESHAPING FOR/DURING ANGLE() ####################################################################
     # Older version:
 
@@ -133,14 +133,14 @@ def process_batch(network, frames, box_centers, box_angles, box_size):
     ## ADRIAN TEMP FIX TO PROBLEMS WITH RESHAPING FOR/DURING ANGLE() ####################################################################
     # New version:
 
-    newheads = np.zeros((int(positions.shape[0]/nb_flies),nb_flies,2))
+    newheads = np.zeros((int(positions.shape[0]/nb_flies), nb_flies, 2))
     newtails = np.zeros(newheads.shape)
-    newheads[:,0,:], newheads[:,1,:] = positions[::2,head_idx,:], positions[1::2,head_idx,:]
-    newtails[:,0,:], newtails[:,1,:] = positions[::2,tail_idx,:], positions[1::2,tail_idx,:]
+    for fly in range(nb_flies):
+        newheads[:, fly, :] = positions[fly::nb_flies, head_idx, :]
+        newtails[:, fly, :] = positions[fly::nb_flies, tail_idx, :]
     newbox_angles, bad_boxes = detect_bad_boxes_by_angle(newheads, newtails, epsilon=5)
 
     #####################################################################################################################################
-
 
     # TODO: figure out better way of shaping things
     bad_boxes = flatten(bad_boxes)
@@ -148,7 +148,6 @@ def process_batch(network, frames, box_centers, box_angles, box_size):
     logging.info(f"   re-exporting boxes.")
 
     # TODO: Only re-process bad_boxes - but this will require reshaping things...
-
 
     ## ADRIAN TEMP FIX TO PROBLEMS WITH RESHAPING FOR/DURING ANGLE() ####################################################################
     # Older version:
@@ -161,7 +160,6 @@ def process_batch(network, frames, box_centers, box_angles, box_size):
     fixed_angles = box_angles + newbox_angles
 
     #####################################################################################################################################
-
 
     boxes, fly_id, fly_frame = export_boxes(frames,
                                             box_centers,
