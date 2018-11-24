@@ -66,4 +66,4 @@ def ismac():
 
 
 def iswin():
-    platform == "win32"
+    return platform == "win32"

@@ -9,9 +9,6 @@ from leap_utils.postprocessing import process_confmaps_simple
 from leap_utils.predict import predict_confmaps, load_network
 from leap_utils.utils import iswin, ismac, flatten, unflatten
 
-# Plot stuff
-play_boxes = True
-inspect_flies = False
 # Paths
 if iswin():
     root = 'Z:/#Common/'
@@ -19,7 +16,8 @@ elif ismac():
     root = '/Volumes/ukme04/#Common/'
 else:
     root = '/scratch/clemens10/'
-dataPath = root+'chainingmic/dat'
+#dataPath = root+'chainingmic/dat'
+dataPath = root+'chainingmic/dat.processed'
 resPath = root+'chainingmic/res'
 networkPath = root+'chainingmic/dat/best_model.h5'
 
@@ -71,12 +69,12 @@ def main(expID: str, *, frame_start: int = 0, frame_stop: int = None, frame_step
     # Specifications for boxes
     if frame_stop is None:
         frame_stop = data['frame_count']
-        logging.info(f'   Setting frame_stop: {0}.'.format(frame_stop))
+        logging.info(f'   Setting frame_stop: {frame_stop}.')
     frame_numbers = range(frame_start, frame_stop, frame_step)
     batch_idx = list(range(0, len(frame_numbers), batch_size))
-    batch_idx.append(frame_stop-1)
+    batch_idx.append(frame_stop-frame_start-1)        # ADRIAN TESTING THINGS, SHOULD BE REMOVED IF COMMITED ####################################
     logging.info(f"   frame range: {frame_start}:{frame_stop}:{frame_step}.")
-    logging.info(f"   processing in {len(batch_idx)} batches of size {batch_size}.")
+    logging.info(f"   processing in {len(batch_idx)-1} batches of size {batch_size}.")
 
     box_size = [120, 120]
     nb_frames = len(frame_numbers)
@@ -123,16 +121,48 @@ def process_batch(network, frames, box_centers, box_angles, box_size):
     head_idx = 0
     tail_idx = 11
     nb_flies = box_angles.shape[1]
-    newbox_angles, bad_boxes = detect_bad_boxes_by_angle(positions[:, head_idx:head_idx+1, :],
-                                                         positions[:, tail_idx:tail_idx+1, :],
-                                                         epsilon=5)
+
+
+    ## ADRIAN TEMP FIX TO PROBLEMS WITH RESHAPING FOR/DURING ANGLE() ####################################################################
+    # Older version:
+
+    # newbox_angles, bad_boxes = detect_bad_boxes_by_angle(positions[:, head_idx:head_idx+1, :],
+    #                                                      positions[:, tail_idx:tail_idx+1, :],
+    #                                                      epsilon=5)
+
+    ## ADRIAN TEMP FIX TO PROBLEMS WITH RESHAPING FOR/DURING ANGLE() ####################################################################
+    # New version:
+
+    newheads = np.zeros((int(positions.shape[0]/nb_flies),nb_flies,2))
+    newtails = np.zeros(newheads.shape)
+    newheads[:,0,:], newheads[:,1,:] = positions[::2,head_idx,:], positions[1::2,head_idx,:]
+    newtails[:,0,:], newtails[:,1,:] = positions[::2,tail_idx,:], positions[1::2,tail_idx,:]
+    newbox_angles, bad_boxes = detect_bad_boxes_by_angle(newheads, newtails, epsilon=5)
+
+    #####################################################################################################################################
+
+
     # TODO: figure out better way of shaping things
     bad_boxes = flatten(bad_boxes)
     logging.info(f"   found {np.sum(bad_boxes)} cases of boxes with angles above threshold.")
     logging.info(f"   re-exporting boxes.")
 
     # TODO: Only re-process bad_boxes - but this will require reshaping things...
-    fixed_angles = box_angles + unflatten(newbox_angles[..., 0], nb_flies)
+
+
+    ## ADRIAN TEMP FIX TO PROBLEMS WITH RESHAPING FOR/DURING ANGLE() ####################################################################
+    # Older version:
+
+    # fixed_angles = box_angles + unflatten(newbox_angles[..., 0], nb_flies)
+
+    ## ADRIAN TEMP FIX TO PROBLEMS WITH RESHAPING FOR/DURING ANGLE() ####################################################################
+    # New version:
+
+    fixed_angles = box_angles + newbox_angles
+
+    #####################################################################################################################################
+
+
     boxes, fly_id, fly_frame = export_boxes(frames,
                                             box_centers,
                                             box_size=np.array([120, 120]),
