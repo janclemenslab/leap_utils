@@ -16,20 +16,21 @@ elif ismac():
     root = '/Volumes/ukme04/#Common/'
 else:
     root = '/scratch/clemens10/'
-#dataPath = root+'chainingmic/dat'
+# dataPath = root+'chainingmic/dat'
 dataPath = root+'chainingmic/dat.processed'
 resPath = root+'chainingmic/res'
 networkPath = root+'chainingmic/dat/best_model.h5'
 
 
-def main(expID: str, *, frame_start: int = 0, frame_stop: int = None, frame_step: int = 1, batch_size: int = 100, save_interval: int = 100):
+def main(expID: str = 'localhost-20180720_182837', *, frame_start: int = 0, frame_stop: int = 200, frame_step: int = 1, batch_size: int = 100, save_interval: int = 100):
     # Fix tracks
     # Paths
     trackPath = f"{dataPath}/{expID}/{expID}_tracks.h5"
     videoPath = f"{dataPath}/{expID}/{expID}.mp4"
     trackfixedPath = f"{resPath}/{expID}//{expID}_tracks_fixed.h5"
     savingPath = f"{resPath}/{expID}"
-    posePath = f"{savingPath}/{expID}_poses.h5"
+    # posePath = f"{savingPath}/{expID}_poses.h5"
+    posePath = f"{savingPath}/{expID}_testing.h5"
 
     try:
         os.mkdir(os.path.dirname(trackfixedPath))
