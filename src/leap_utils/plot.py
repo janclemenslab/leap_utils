@@ -46,7 +46,7 @@ def joint_distributions(positions, type):
     pass
 
 
-def vplay(frames: np.array, idx: np.array=None, moviemode: bool=False):
+def vplay(frames: np.array, idx: np.array = None, moviemode: bool = False):
     """Plots boxes, either in a movie (moviemode = True) or frame by frame (moviemode = False)
 
     Input: list of frames (output from export_boxes)
@@ -67,9 +67,9 @@ def vplay(frames: np.array, idx: np.array=None, moviemode: bool=False):
     if moviemode:
         ii = 0
         while True:
-            frame = frames[ii,...]
-            cv2.putText(frame, str(idx[ii]), (12,12), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0,0,250), lineType=4)
-            cv2.imshow('movie',frame)
+            frame = frames[ii, ...]
+            cv2.putText(frame, str(idx[ii]), (12, 12), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 250), lineType=4)
+            cv2.imshow('movie', frame)
             ii += 1
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -82,9 +82,9 @@ def vplay(frames: np.array, idx: np.array=None, moviemode: bool=False):
     else:
         ii = 0
         while True:
-            frame = frames[ii,...]
-            cv2.putText(frame, str(idx[ii]), (12,12), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0,0,250), lineType=4)
-            cv2.imshow('movie',frame)
+            frame = frames[ii, ...]
+            cv2.putText(frame, str(idx[ii]), (12, 12), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 250), lineType=4)
+            cv2.imshow('movie', frame)
             wkey = cv2.waitKey(0)
 
             if wkey & 0xFF == ord('q'):
