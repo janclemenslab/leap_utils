@@ -59,6 +59,9 @@ def vplay(frames: np.array, idx: np.array = None, moviemode: bool = False):
     if idx is None:
         idx = range(len(frames))
 
+    if frames.shape[3] == 1:
+        frames = np.repeat(frames, 3, axis=3)
+
     if len(idx) == len(frames)/2:
         ridx = np.zeros(len(frames), dtype=int)
         ridx[::2], ridx[1::2] = idx, idx
