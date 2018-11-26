@@ -71,10 +71,7 @@ def annotate(frame, positions):
     """
     import cv2
     nb_pos = positions.shape[0]
-    nb_chans = frame.shape[2]
-    if nb_chans == 1:
-        frame = np.concatenate((frame, frame, frame), axis=2)
-
+   
     colors = np.zeros((1, nb_pos, 3), np.uint8)
     colors[0, :] = 220
     colors[0, :, 0] = np.arange(0, 180, 180.0/nb_pos)
@@ -96,7 +93,7 @@ def vplay(frames: np.array, idx: np.array = None, positions: np.array = None, mo
 
     Args:
         frames: [nb_frames, widht, height, channels] (output from export_boxes).
-        idx: REMOVE???
+        idx: ...
         positions: [nb_frames, x/y]
         moviemode: auto play or advance/rewind via 'd' and 's'
     """
@@ -109,10 +106,14 @@ def vplay(frames: np.array, idx: np.array = None, positions: np.array = None, mo
         ridx = np.zeros(len(frames), dtype=int)
         ridx[::2], ridx[1::2] = idx, idx
         idx = ridx
-
+        
+    nb_chans = frames.shape[3]
+    
     ii = 0
     while True:
         frame = frames[ii, ...]
+        if nb_chans == 1:
+            frame = np.concatenate((frame, frame, frame), axis=2)
         if positions is not None:
             frame = annotate(frame, positions[ii, ...])
         cv2.putText(frame, str(idx[ii]), (12, 12), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 250), lineType=4)
