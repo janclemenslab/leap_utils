@@ -33,7 +33,7 @@ def flatten(X: np.ndarray) -> (np.ndarray):
     return X.reshape((X.shape[0]*X.shape[1], *X.shape[2:]), order='A')
 
 
-def unflatten(X: np.ndarray, dim2_len: int = 2) -> (np.ndarray):
+def unflatten(X: np.ndarray, dim2_len: int) -> (np.ndarray):
     """Convert from [dim1*dim2, ...] to [dim1, dim_len...].
 
     Arguments:
