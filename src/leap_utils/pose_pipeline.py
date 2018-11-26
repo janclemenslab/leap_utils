@@ -7,7 +7,7 @@ from videoreader import VideoReader
 from leap_utils.preprocessing import export_boxes, angles, normalize_boxes, detect_bad_boxes_by_angle, fix_orientations
 from leap_utils.postprocessing import process_confmaps_simple
 from leap_utils.predict import predict_confmaps, load_network
-from leap_utils.utils import iswin, ismac, flatten, unflatten
+from leap_utils.utils import iswin, ismac, flatten
 
 # Paths
 if iswin():
