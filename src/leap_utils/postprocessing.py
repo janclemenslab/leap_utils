@@ -77,7 +77,7 @@ def process_confmaps_bayesian(confmaps: np.ndarray, prior_information) -> (np.nd
     return positions, confidence
 
 
-def load_labels(labelsPath: str = '/#Common/adrian/Workspace/dat/big_dataset_17102018_train.labels.mat'):
+def load_labels(labelsPath: str = '/#Common/chainingmic/dat/misc/big_dataset_17102018_train.labels.mat'):
     """ Load labels data from the *.mat file created from LEAP interface, selecting only fully labeled boxes
 
     Arguments:
@@ -106,6 +106,7 @@ def load_labels(labelsPath: str = '/#Common/adrian/Workspace/dat/big_dataset_171
         logging.error(f'   data dimensions do not match.')
 
     status = np.all(~np.isnan(positions), (1, 2))  # True if box has been fully labeled
+
     if np.sum(status) != positions.shape[0]:
         logging.info(f'   not all positions in file have been labeled. Selecting labeled data from file.')
         initialization = initialization[status, ...]
