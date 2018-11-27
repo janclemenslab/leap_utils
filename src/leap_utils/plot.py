@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-
 def color_confmaps(confmaps, cmap='gist_rainbow') -> (np.array, np.array):
     """Color code different layers in a confidence maps.
 
@@ -87,7 +86,7 @@ def annotate(frame, positions):
         cv2.circle(frame, (int(pos[1]), int(pos[0])), radius=4, color=colors[idx], thickness=1)
     return frame
 
-  
+
 def vplay(frames: np.array, idx: np.array = None, positions: np.array = None, moviemode: bool = False):
     """Plots boxes, either in a movie (moviemode = True) or frame by frame (moviemode = False)
 
@@ -109,18 +108,19 @@ def vplay(frames: np.array, idx: np.array = None, positions: np.array = None, mo
 
     nb_chans = frames.shape[3]
 
+    if nb_chans == 1:
+        frames = np.repeat(frames, 3, axis=3)
+
     ii = 0
     while True:
         frame = frames[ii, ...]
-        if nb_chans == 1:
-            frame = np.concatenate((frame, frame, frame), axis=2)
         if positions is not None:
             frame = annotate(frame, positions[ii, ...])
         cv2.putText(frame, str(idx[ii]), (12, 12), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 250), lineType=4)
         cv2.imshow('movie', frame)
-        ii += 1
 
         if moviemode:
+            ii += 1
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
                 break
