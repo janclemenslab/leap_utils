@@ -4,13 +4,18 @@ import skimage.feature
 
 from .utils import it, max2d
 
+from leap_utils.preprocessing import normalize_matlab_boxes
+import h5py
+import logging
 
 # TODO:
 # - return max values
 # - "overload" max2d via num_peaks argument?
 # - reorganize and to utils
+
+
 def max2d_multi(mask: np.ndarray, num_peaks: int, smooth: float = None,
-                   exclude_border: bool = True, min_distance: int = 4) -> (np.ndarray, np.ndarray):
+                exclude_border: bool = True, min_distance: int = 4) -> (np.ndarray, np.ndarray):
     """Detect one or multiple peaks in each channel of an image."""
     maxima = np.ndarray((2, num_peaks, mask.shape[-1]))
     for idx, plane in enumerate(it(mask, axis=-1)):
@@ -70,3 +75,46 @@ def process_confmaps_bayesian(confmaps: np.ndarray, prior_information) -> (np.nd
     positions = None
     confidence = None
     return positions, confidence
+
+
+def load_labels(labelsPath: str = '/#Common/adrian/Workspace/dat/big_dataset_17102018_train.labels.mat'):
+    """ Load labels data from the *.mat file created from LEAP interface, selecting only fully labeled boxes
+
+    Arguments:
+        labelsPath - path to the *.label.mat file
+
+    Returns:
+        positions - [nboxes, nbodyparts, 2]
+        initialization - [nboxes, 1]
+        boxes - [nboxes, width, height, channels] already 'normalized' from matlab to python format
+    """
+
+    logging.info(f'   loading labels from: {labelsPath}.')
+    f = h5py.File(labelsPath, 'r')
+    # contains: boxPath, config, createdOn, history, initialization, lastModified, positions, savePath, session, skeleton, skeletonPath
+    boxPath = "".join([chr(item) for item in f['boxPath']])
+    initialization = f['initialization']
+    positions = f['positions']
+    logging.info(f'   found {positions.shape[0]} sets of positions.')
+
+    logging.info(f'   loading boxes from: {boxPath}.')
+    boxf = h5py.File(boxPath, 'r')
+    boxes = boxf['box']
+    logging.info(f'   found {boxes.shape[0]} boxes.')
+
+    if positions.shape[0] != boxes.shape[0]:
+        logging.error(f'   data dimensions do not match.')
+
+    status = np.all(~np.isnan(positions), (1, 2))  # True if box has been fully labeled
+    if np.sum(status) != positions.shape[0]:
+        logging.info(f'   not all positions in file have been labeled. Selecting labeled data from file.')
+        initialization = initialization[status, ...]
+        positions = positions[status, ...]
+        boxes = boxes[status, ...]
+    else:
+        logging.info(f'   all data in file has been labeled.')
+
+    boxes = normalize_matlab_boxes(boxes)
+    f.close()
+    boxf.close()
+    return positions, initialization, boxes
