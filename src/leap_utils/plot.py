@@ -71,7 +71,7 @@ def annotate(frame, positions):
     """
     import cv2
     nb_pos = positions.shape[0]
-   
+
     colors = np.zeros((1, nb_pos, 3), np.uint8)
     colors[0, :] = 220
     colors[0, :, 0] = np.arange(0, 180, 180.0/nb_pos)
@@ -87,7 +87,7 @@ def annotate(frame, positions):
         cv2.circle(frame, (int(pos[1]), int(pos[0])), radius=4, color=colors[idx], thickness=1)
     return frame
 
-
+  
 def vplay(frames: np.array, idx: np.array = None, positions: np.array = None, moviemode: bool = False):
     """Plots boxes, either in a movie (moviemode = True) or frame by frame (moviemode = False)
 
@@ -106,9 +106,9 @@ def vplay(frames: np.array, idx: np.array = None, positions: np.array = None, mo
         ridx = np.zeros(len(frames), dtype=int)
         ridx[::2], ridx[1::2] = idx, idx
         idx = ridx
-        
+
     nb_chans = frames.shape[3]
-    
+
     ii = 0
     while True:
         frame = frames[ii, ...]

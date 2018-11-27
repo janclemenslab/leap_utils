@@ -7,7 +7,7 @@ from videoreader import VideoReader
 from leap_utils.preprocessing import export_boxes, angles, normalize_boxes, detect_bad_boxes_by_angle, fix_orientations
 from leap_utils.postprocessing import process_confmaps_simple
 from leap_utils.predict import predict_confmaps, load_network
-from leap_utils.utils import iswin, ismac, flatten, unflatten
+from leap_utils.utils import iswin, ismac, flatten
 
 # Paths
 if iswin():
@@ -16,7 +16,7 @@ elif ismac():
     root = '/Volumes/ukme04/#Common/'
 else:
     root = '/scratch/clemens10/'
-#dataPath = root+'chainingmic/dat'
+# dataPath = root+'chainingmic/dat'
 dataPath = root+'chainingmic/dat.processed'
 resPath = root+'chainingmic/res'
 networkPath = root+'chainingmic/dat/best_model.h5'

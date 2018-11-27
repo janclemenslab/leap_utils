@@ -112,7 +112,6 @@ def angles(heads: np.array, tails: np.array) -> np.array:
 
     fly_angles = np.zeros((heads.shape[0], 1))
     fly_angles[:, 0] = 90 + np.arctan2(heads[:, 0]-tails[:, 0], heads[:, 1]-tails[:, 1]) * 180 / np.pi
-
     return unflatten(fly_angles, nfly)
 
 
@@ -128,7 +127,7 @@ def detect_bad_boxes_by_angle(heads: np.ndarray, tails: np.ndarray, epsilon: flo
         bad_boxes_byAngle: [nboxes, 1], where 1 = bad box, 0 = good box
     """
     fly_angles = angles(heads, tails)
-    bad_boxes = abs(fly_angles) > epsilon
+    bad_boxes = abs(fly_angles-180) > epsilon
     return fly_angles, bad_boxes
 
 
