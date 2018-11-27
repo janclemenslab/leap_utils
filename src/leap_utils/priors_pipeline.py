@@ -10,15 +10,14 @@ from leap_utils.postprocessing import load_labels
 
 
 def create_priors(labelsPath: str = '/#Common/adrian/Workspace/dat/big_dataset_17102018_train.labels.mat', frame_size: int = 120, savePath: str = '/#Common/adrian/Workspace/temp/priors.h5', overwrite: bool = True, testit: bool = False):
-    # """ Creates priors for each body part based on the labeled positions from the *.labels.mat file specified.
-    #
-    # Arguments:
-    #     labelsPath - path to the *.label.mat file
-    #     frame_size - (assuming squared frame) width = height, default = 120
-    #     savePath - path to save priors array as priors.h5
-    #     overwrite - allow to overwrite files
-    #     testit - test for best bandwidth in the kde calculation (takes A LOT more time, not sure if it really works)
-    # """
+    """ Creates priors for each body part based on the labeled positions from the mat file specified.
+
+    :param str labelsPath: path to the mat file
+    :param int frame_size: size of frame, assuming squared frame
+    :param str savePath: path to save priors array
+    :param bool overwrite: allow to overwrite files
+    :param bool testit: test for best bandwidth in the kde calculation (takes A LOT more time, not sure if it really works)
+    """
 
     # Load labels
     positions, _, _ = load_labels(labelsPath)
