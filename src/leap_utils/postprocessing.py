@@ -77,7 +77,7 @@ def process_confmaps_bayesian(confmaps: np.ndarray, prior_information) -> (np.nd
     return positions, confidence
 
 
-def load_labels(labelsPath: str = '/#Common/chainingmic/dat/misc/big_dataset_17102018_train.labels.mat'):
+def load_labels(labelsPath: str = '/#Common/chainingmic/leap/training_data/big_dataset_train.labels.mat'):
     """ Load labels data from the *.mat file created from LEAP interface, selecting only fully labeled boxes
 
     Arguments:

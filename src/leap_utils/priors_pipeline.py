@@ -4,12 +4,11 @@ import matplotlib.pyplot as plt
 import logging
 import defopt
 import os
-from sklearn.neighbors import KernelDensity
-from sklearn.model_selection import GridSearchCV
 from leap_utils.postprocessing import load_labels
+from leap_utils.utils import mykde
 
 
-def create_priors(labelsPath: str = '/#Common/chainingmic/dat/misc/big_dataset_17102018_train.labels.mat', frame_size: int = 120, savePath: str = '/#Common/chainingmic/dat/misc/priors.h5', overwrite: bool = True, testit: bool = False):
+def create_priors(labelsPath: str = '/#Common/chainingmic/leap/training_data/big_dataset_train.labels.mat', frame_size: int = 120, savePath: str = '/#Common/chainingmic/leap/training_data/priors.h5', overwrite: bool = True, testit: bool = False):
     """ Creates priors for each body part based on the labeled positions from the mat file specified.
 
     :param str labelsPath: path to the mat file
@@ -66,52 +65,6 @@ def create_priors(labelsPath: str = '/#Common/chainingmic/dat/misc/big_dataset_1
     new_f.create_dataset('priors', data=priors, compression='gzip')
     new_f.close()
     plt.show()
-
-
-def mykde(X, *, grid_size: int = 120, bw: float = 4, bw_select: bool = False, plotnow: bool = False, train_percentage: float = 0.1):
-    """ Calculates the probability density given a set of positions through the Kernel Density Estimation approach.
-
-    Arguments:
-        X - positions [nsamples, 2]
-        grid_size - default = 120
-        bw - bandwidth, optimal value may change depending on amount of data
-        bw_select - toggle option to search for best bandwidth
-        plotnow - toggle option to plot a figure of the probability density map
-        train_percentage - (if bw_select = True) percentage of the data set to be used for finding optimal bandwidth
-    Returns:
-        probdens - probability density map [frame_size, frame_size]
-    """
-
-    if bw_select:
-        # Selecting the bandwidth via cross-validation
-        bandwidths = 10 ** np.linspace(-1, 1, 100)
-        grid = GridSearchCV(KernelDensity(kernel='gaussian'), {'bandwidth': bandwidths}, cv=len(X[:int(len(X)*train_percentage), :]))
-        grid.fit(X[:int(len(X)*train_percentage), :])
-        bw = grid.best_params_['bandwidth']
-
-    # Kernel Density Estimation
-    kde = KernelDensity(bandwidth=bw).fit(X)
-
-    # Grid creation
-    xx_d = np.linspace(0, grid_size, grid_size)
-    yy_d = np.linspace(0, grid_size, grid_size)
-    xx_dv, yy_dv = np.meshgrid(xx_d, yy_d)
-    coor = np.array([xx_dv.flatten(), yy_dv.flatten()]).swapaxes(0, 1)
-
-    # Evaluation of grid
-    logprob = kde.score_samples(coor)      # Array of log(density) evaluations. Normalized to be probability densities.
-    probdens = np.exp(logprob)
-
-    # Plot
-    if plotnow:
-        im = probdens.reshape((int(probdens.shape[0]/grid_size), grid_size))
-        plt.imshow(im)
-        plt.colorbar()
-        # plt.contourf(xx_dv, yy_dv, probdens.reshape((xx_d.shape[0], xx_d.shape[0])))
-        plt.scatter(X[:, 0], X[:, 1], c='red')
-        plt.show()
-
-    return probdens
 
 
 if __name__ == '__main__':
