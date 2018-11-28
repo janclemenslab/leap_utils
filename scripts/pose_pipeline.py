@@ -166,20 +166,20 @@ def process_batch(network, frames, box_centers, box_angles, box_size):
                                                          epsilon=5)
     bad_frame_idx = np.any(bad_boxes, axis=1)[:, 0]   # for addressing bad boxes by frame
     bad_box_idx = np.repeat(bad_frame_idx, nb_flies)   # for addressing bad boxes by box
-    logging.info(f"   found {np.sum(bad_boxes)} cases of boxes with angles above threshold.")
-    logging.info(f"   re-exporting the bad boxes.")
-
     fixed_angles = box_angles
-    fixed_angles[bad_frame_idx, ...] = box_angles[bad_frame_idx, ...] + newbox_angles[bad_frame_idx, ...]
-    boxes[bad_box_idx, ...], *_ = export_boxes([frames[int(idx)] for idx in np.where(bad_frame_idx)[0]],
-                                               box_centers[bad_frame_idx, ...],
-                                               box_size=np.array([120, 120]),
-                                               box_angles=fixed_angles[bad_frame_idx, ...])
-    # Final predictions
-    logging.info(f"   re-doing predictions.")
-    confmaps[bad_box_idx, ...] = predict_confmaps(network, normalize_boxes(boxes[bad_box_idx, ...]))
-    logging.info(f"   re-processing confidence maps.")
-    positions[bad_box_idx, ...], confidence[bad_box_idx, ...] = process_confmaps_simple(confmaps[bad_box_idx, ...])
+    if np.sum(bad_boxes)>0:    
+        logging.info(f"   found {np.sum(bad_boxes)} cases of boxes with angles above threshold.")
+        logging.info(f"      re-exporting the bad boxes.")
+
+        fixed_angles[bad_frame_idx, ...] = box_angles[bad_frame_idx, ...] + newbox_angles[bad_frame_idx, ...]
+        boxes[bad_box_idx, ...], *_ = export_boxes([frames[int(idx)] for idx in np.where(bad_frame_idx)[0]],
+                                                   box_centers[bad_frame_idx, ...],
+                                                   box_size=np.array([120, 120]),
+                                                   box_angles=fixed_angles[bad_frame_idx, ...])
+        logging.info(f"      re-doing predictions.")
+        confmaps[bad_box_idx, ...] = predict_confmaps(network, normalize_boxes(boxes[bad_box_idx, ...]))
+        logging.info(f"      re-processing confidence maps.")
+        positions[bad_box_idx, ...], confidence[bad_box_idx, ...] = process_confmaps_simple(confmaps[bad_box_idx, ...])
     # all results should be in nb_boxes format
     fixed_angles = flatten(fixed_angles)
     bad_boxes = flatten(bad_boxes)
