@@ -187,6 +187,6 @@ def fix_orientations(lines0, chamber_number=0):
         idx_new, = np.where(velsmooththres == 0)
         ynew = f(range(velsmooththres.shape[0]))
 
-        # 4. swap head and tail
+        # 5. swap head and tail
         lines_fixed[ynew < 0, chamber_number, fly, :, :] = lines_fixed[ynew < 0, chamber_number, fly, ::-1, :]
     return lines_fixed

@@ -9,7 +9,7 @@ from sklearn.model_selection import GridSearchCV
 from leap_utils.postprocessing import load_labels
 
 
-def create_priors(labelsPath: str = '/#Common/chainingmic/dat/misc/big_dataset_17102018_train.labels.mat', frame_size: int = 120, savePath: str = '/#Common/chainingmic/dat/misc/priors.h5', overwrite: bool = True, testit: bool = False):
+def create_priors(labelsPath: str = '/#Common/chainingmic/leap/training_data/big_dataset_train.labels.mat', frame_size: int = 120, savePath: str = '/#Common/chainingmic/leap/training_data/priors.h5', overwrite: bool = True, testit: bool = False):
     """ Creates priors for each body part based on the labeled positions from the mat file specified.
 
     :param str labelsPath: path to the mat file
