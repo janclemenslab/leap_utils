@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def color_confmaps(confmaps, cmap='gist_rainbow') -> (np.array, np.array):
+def color_confmaps(confmaps, cmap='gist_rainbow', invert=False) -> (np.array, np.array):
     """Color code different layers in a confidence maps.
 
     Usage:
@@ -13,6 +13,7 @@ def color_confmaps(confmaps, cmap='gist_rainbow') -> (np.array, np.array):
     Args:
         confmaps
         cmap - str, cmap object, nparray
+        invert: white background
     Returns:
         colored_maps
         colors
@@ -31,6 +32,9 @@ def color_confmaps(confmaps, cmap='gist_rainbow') -> (np.array, np.array):
 
     for mp in range(confmaps.shape[-1]):
         color_confmaps += confmaps[..., mp:mp+1] * colors[mp:mp+1, :]
+
+    if invert:
+        color_confmaps = 1-color_confmaps
     return color_confmaps, colors
 
 
