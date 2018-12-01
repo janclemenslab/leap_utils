@@ -13,7 +13,8 @@ import leap.models
 class BoxMaskSequence(keras.utils.Sequence):
     """Returns batches of boxes."""
 
-    def __init__(self, x: np.ndarray, y: np.ndarray, batch_size: int = 32, shuffle: bool=False,
+    def __init__(self, x: np.ndarray, y: np.ndarray,
+                 batch_size: int = 32, shuffle: bool = False,
                  hflip: bool = False, vflip: bool = False,
                  rg: float = 0, wrg: float = 0, hrg: float = 0,
                  zrg=None, brg=None) -> None:
@@ -23,12 +24,12 @@ class BoxMaskSequence(keras.utils.Sequence):
             boxes: np.ndarray [nb_box, width, height, channels]
             batch_size (32): int
             shuffle (False)
-            hflip: flip along axis 0
-            vflip: flip along axis 1
+            hflip: horizontal flip (along axis 1)
+            vflip: vertical flip (along axis 0)
             rg: Rotation range, in degrees.
             wrg: Width shift range, as a float fraction of the width.
             hrg: Height shift range, as a float fraction of the height.
-            zrg: Tuple of floats; zoom range for width and height.
+            zrg: Tuple of floats; zoom range (multiplier, e.g (0.9, 1.1)).
             brg: Tuple of floats; brightness range (multiplier, e.g (0.9, 1.1)).
         """
         if x.shape[0] != y.shape[0]:
@@ -60,37 +61,29 @@ class BoxMaskSequence(keras.utils.Sequence):
     def _augment(self, x, y):
         for idx, (xx, yy) in enumerate(zip(x, y)):
             if self.hflip and np.random.rand() > 0.5:
-                x[idx, ...] = kp.flip_axis(xx, axis=0)
-                y[idx, ...] = kp.flip_axis(yy, axis=0)
-            if self.vflip and np.random.rand() > 0.5:
                 x[idx, ...] = kp.flip_axis(xx, axis=1)
                 y[idx, ...] = kp.flip_axis(yy, axis=1)
+            if self.vflip and np.random.rand() > 0.5:
+                x[idx, ...] = kp.flip_axis(xx, axis=0)
+                y[idx, ...] = kp.flip_axis(yy, axis=0)
             if self.brg is not None:
-                # random_brightness only takes 3-channel inputs but maps have more poses
-                # so we need to do this channelwise
+                # random_brightness per channel
                 for chn in range(xx.shape[-1]):
                     u = np.random.uniform(*self.brg)
                     x[idx, ..., chn:chn+1] = kp.apply_brightness_shift(xx[..., chn:chn+1], u)
-                    y[idx, ..., chn:chn+1] = kp.apply_brightness_shift(yy[..., chn:chn+1], u)
-            # neutral rot, shift, zoom values
             if self.rg > 0 or self.wrg > 0 or self.hrg > 0 or self.zrg is not None:
-                # TODO: make dict and unpack as kwarg
-                theta = 0
-                tx = 0
-                ty = 0
-                shear = 0
-                zx = 1
-                zy = 1
+                params = {'theta': 0, 'tx': 0, 'ty': 0, 'shear': 0, 'zx':1, 'zy': 1}
                 if self.rg > 0:
-                    theta = np.random.uniform(-self.rg, self.rg)
+                    params['theta'] = np.random.uniform(-self.rg, self.rg)
                 if self.wrg > 0 or self.hrg > 0:
                     h, w = xx.shape[0], xx.shape[1]
-                    tx = np.random.uniform(-self.hrg, self.hrg) * h
-                    ty = np.random.uniform(-self.wrg, self.wrg) * w
+                    params['tx'] = np.random.uniform(-self.wrg, self.wrg) * w
+                    params['ty'] = np.random.uniform(-self.hrg, self.hrg) * h
                 if self.zrg is not None:
-                    zx, zy = np.random.uniform(*self.zrg, 2)
-                x[idx, ...] = kp.apply_affine_transform(xx, theta=theta, tx=tx, ty=ty, shear=0, zx=zx, zy=zy)
-                y[idx, ...] = kp.apply_affine_transform(yy, theta=theta, tx=tx, ty=ty, shear=0, zx=zx, zy=zy)
+                    params['zx'] = np.random.uniform(*self.zrg, 1)[0]
+                    params['zy'] = params['zx']
+                x[idx, ...] = kp.apply_affine_transform(xx, **params)
+                y[idx, ...] = kp.apply_affine_transform(yy, **params)
         return x, y
 
     def __len__(self) -> int:
