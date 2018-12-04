@@ -85,8 +85,6 @@ def annotate(frame, positions):
     cols = np.array(cm(np.linspace(0, 1, nb_pos)))*255
     colors = cols[..., :3].astype(np.float32).tolist()
     for idx, pos in enumerate(positions):
-        # import ipdb; ipdb.set_trace()
-        print(colors[idx])
         cv2.circle(frame, (int(pos[1]), int(pos[0])), radius=4, color=colors[idx], thickness=1)
     return frame
 
