@@ -1,7 +1,7 @@
 from leap_utils.io import DataLoader
 
-try:
-    dl = DataLoader('scripts/io.yaml', root='ROOT_OVERRIDE')
+def test_DataLoader():
+    dl = DataLoader('../scripts/io.yaml', root='ROOT_OVERRIDE')
     print(dl._config['root'])
     print(dl._config)
     print(dl.types)
@@ -10,8 +10,10 @@ try:
     print(dl._idfile('test.h5'))
     print(dl._idfile('test.npy'))
     print(dl._idfile('test.mp4'))
-except:
+
+def test_LArray():
     pass
+
 # try:
 #     dl.get('poposes', '')
 # except KeyError as e:

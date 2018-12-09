@@ -7,7 +7,7 @@ from typing import Callable
 from itertools import product
 
 
-class DataLoader():
+class DataLoader:
     """DataLoader.
 
     More documentation:
@@ -31,7 +31,7 @@ class DataLoader():
     - add fixed files: e.g. network models?
     """
 
-    def __init__(self, config_filename: str, root: str = None):
+    def __init__(self, config_filename: str, root: str = None) -> None:
         """Initialize DataLoader with data from config.
 
         Args:
