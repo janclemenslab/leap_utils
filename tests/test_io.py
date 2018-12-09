@@ -1,7 +1,7 @@
 from leap_utils.io import DataLoader
 
 def test_DataLoader():
-    dl = DataLoader('../scripts/io.yaml', root='ROOT_OVERRIDE')
+    dl = DataLoader('scripts/io.yaml', root='ROOT_OVERRIDE')
     print(dl._config['root'])
     print(dl._config)
     print(dl.types)

@@ -1,2 +1,2 @@
 from .DataLoader import DataLoader
-from .LArray import LArray
+from .LArray import LArray, print_table

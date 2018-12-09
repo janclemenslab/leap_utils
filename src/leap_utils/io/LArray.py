@@ -1,3 +1,4 @@
+"""Labelled, self-documenting arrays with semantic row and column indexing."""
 import logging
 import copy
 import warnings
@@ -7,17 +8,9 @@ import numpy as np
 class LArray(np.ndarray):
     """Labelled array."""
 
-    # TODO: nicer __repr__/__str__ -
-    # TODO: proper tests - for empy row/col names, wrong input shapes
-    # TODO: DONE error messages if trying to do string indexing with empy col_names or row selection with empty row_names
-    # TODO: concatenate - concat row_names when concatenating two LArrays
-    # TODO: add row (or col)
-
-    def __new__(cls, input_array, col_names=[], row_names={}):
-        # Input array is an already formed ndarray instance
-        # We first cast to be our class type
+    def __new__(cls, input_array, col_names=[], row_index={}):
+        """Create new LArray from nparray."""
         obj = np.asarray(input_array).view(cls)
-        # add the new attribute to the created instance
         if col_names and len(col_names) != obj.shape[1]:
             raise ValueError(f'Number of column names {len(col_names)} must match number of array columns {obj.shape[1]}.')
 
@@ -27,28 +20,28 @@ class LArray(np.ndarray):
             raise ValueError(f'Column names must be strings.')
         obj.col_names = col_names
 
-        bad_row_lens= [len(row_name)!=obj.shape[0] for key, row_name in row_names.items()]
-        if row_names and any(bad_row_lens):
+        bad_row_lens = [len(row_name) != obj.shape[0] for key, row_name in row_index.items()]
+        if row_index and any(bad_row_lens):
             # TODO: more informative error message - report which rows are the wrong length
             raise ValueError(f'Length of each row must match number of array rows {obj.shape[0]}.')
-        obj.row_names = row_names
+        obj.row_index = row_index
 
         return obj
 
     def __array_finalize__(self, obj):
-        # see col_namesArray.__array_finalize__ for comments
+        """Finalize array creation."""
         if obj is None:
             return
         self.col_names = getattr(obj, 'col_names', None)
-        self.row_names = getattr(obj, 'row_names', None)
+        self.row_index = getattr(obj, 'row_index', None)
 
     def __str__(self) -> str:
         """Represent table as string for printing."""
         if len(self.shape) == 3:
             s = print_table(col_values=self.asarray(),
                             col_headers=self.col_names,
-                            row_values=np.array(list(self.row_names.values())).T,
-                            row_headers=list(self.row_names.keys()),
+                            row_values=np.array(list(self.row_index.values())).T,
+                            row_headers=list(self.row_index.keys()),
                             last_row=min(self.shape[0], 8))
         else:
             s = super().__str__()
@@ -65,8 +58,8 @@ class LArray(np.ndarray):
         if len(self.shape) == 3:
             ss = print_table(col_values=self,
                              col_headers=self.col_names,
-                             row_values=np.array(list(self.row_names.values())).T,
-                             row_headers=list(self.row_names.keys()),
+                             row_values=np.array(list(self.row_index.values())).T,
+                             row_headers=list(self.row_index.keys()),
                              first_row=first_row,
                              last_row=last_row)
         else:
@@ -82,26 +75,27 @@ class LArray(np.ndarray):
         self.print(first_row=max(self.shape[0]-5, 8), last_row=self.shape[0])
 
     def __getitem__(self, key):
+        """Index into LArray."""
         new_key = self._process_key(key)
-        x = copy.deepcopy(super(LArray, self).__getitem__(new_key))
-        if x.shape:
-            new_row_names = {}
-            for key, val in x.row_names.items():
-                new_row_names[key] = val[new_key[0]]
-            x.row_names = new_row_names
+        new_larray = copy.deepcopy(super(LArray, self).__getitem__(new_key))
+        if new_larray.shape:
+            new_row_index = {}
+            for key, val in new_larray.row_index.items():
+                new_row_index[key] = val[new_key[0]]
+            new_larray.row_index = new_row_index
 
-            if x.col_names:
-                x.col_names = np.array(x.col_names)[new_key[1]].tolist()
-        return x
+            if new_larray.col_names:
+                new_larray.col_names = np.array(new_larray.col_names)[new_key[1]].tolist()
+        return new_larray
 
     def __setitem__(self, key, val):
+        """Set LArray values."""
         new_key = self._process_key(key)
         super(LArray, self).__setitem__(new_key, val)
 
-
     def asarray(self):
+        """Return as standard np.array."""
         return np.array(self.data)
-
 
     def _process_key(self, key):
         if isinstance(key, (str, tuple, list)) and all([isinstance(key_str, str) for key_str in key]):
@@ -153,10 +147,9 @@ class LArray(np.ndarray):
             new_key = key
         return new_key
 
-
     def idx(self, key):
         """Get index for key or list of keys."""
-        if key is None or isinstance(key, (int, slice, type(Ellipsis))) :  # these are valid indices
+        if key is None or isinstance(key, (int, slice, type(Ellipsis))):  # these are valid indices
             logging.debug(f'      idx got valid key {key}')
             return key
         else:
@@ -186,18 +179,18 @@ class LArray(np.ndarray):
             kwargs - by row name
         """
         matches = self._match_rows(*args, **kwargs)
-        return self[matches,...]
+        return self[matches, ...]
 
     def _match_rows(self, *args, **kwargs):
         # get row_name for args
-        if not self.row_names:
-            warnings.warn('matching w/o row_names returns empty matches')
+        if not self.row_index:
+            warnings.warn('matching w/o row_index returns empty matches')
             matches = np.zeros((self.shape[0],)).astype(np.bool)
         else:
             matches = np.ones((self.shape[0],)).astype(np.bool)
             logging.debug(f'transforming {args} into kwargs.')
             for pos, val in enumerate(args):
-                key = list(self.row_names.keys())[pos]
+                key = list(self.row_index.keys())[pos]
                 kwargs[key] = val
             logging.debug(f'   new kwargs: {kwargs}.')
             matches = np.ones((self.shape[0],)).astype(np.bool)
@@ -205,7 +198,7 @@ class LArray(np.ndarray):
                 cond = np.zeros((self.shape[0],)).astype(np.bool)
                 logging.debug(f'      matching {key}:{val}')
                 for v in self._tuplify(val):
-                    cond = np.logical_or(cond, self.row_names[key] == [v])
+                    cond = np.logical_or(cond, self.row_index[key] == [v])
                 matches = np.logical_and(matches, cond)  # combine rows via AND
         return matches
 
@@ -269,97 +262,3 @@ def print_table(col_values, col_headers=None, row_values=None, row_headers=None,
         s.append(f'showing all {col_values.shape[0]} rows.\n')
     s.append('\n')
     return ''.join(s)
-
-
-def test_tuplify(la):
-    print('bool:', la._tuplify(True))
-    print('int:', la._tuplify(1))
-    print('float', la._tuplify(1.0))
-    print('range', la._tuplify(range(3)))
-    print('tuple', la._tuplify(tuple(range(3))))
-    print('nparray', la._tuplify(np.arange(3)))
-
-
-def test_get(la):
-    print('la[:, 11, :] -> (20, 2) == ', la[:, 11, :].shape)
-    print('la[:, "tail", :] -> (20, 2) == ', la[:, 'tail', :].shape)
-    print('la[:, "WRONG", :] -> (20, 0, 2) == ', la[:, 'WRONG', :].shape)
-    print('la[:, [4, 6], :] -> (20, 2, 2) == ', la[:, [4, 6], :].shape)
-    print('la[:, [4, 6]] -> (20, 2, 2) == ', la[:, [4, 6]].shape)
-
-    print("la[::2, ('tail', 'head')] -> (10, 2, 2)", la[::2, ('tail', 'head')].shape)
-    print("la[::2, ['tail', 'head']] -> (10, 2, 2)", la[::2, ['tail', 'head']].shape)
-
-    print('----------- ROWS ----------------')
-    print("la.rows('rec2') -> (10, 12, 2) ==", la.rows('rec2').shape)
-    print("la.rows(fly=1) -> (7, 12, 2) ==", la.rows(fly=1).shape)
-    print("la.rows('rec2', fly=1) -> (2, 12, 2) ==", la.rows('rec2', fly=1).shape)
-    print("la.rows('rec1', fly=1) -> (5, 12, 2) ==", la.rows('rec1', fly=1).shape)
-    print("la.rows('rec1', fly=[0, 1]) -> (10,12,2) ==", la.rows('rec1', fly=[0, 1]).shape)
-    print("la.rows(('rec1', 'rec2'), fly=[0, 1]) -> (14,12,2) ==", la.rows(('rec1', 'rec2'), fly=[0, 1]).shape)
-    print("la.rows(['rec1', 'rec2'], fly=[0, 1]) -> (14,12,2) ==", la.rows(['rec1', 'rec2'], fly=[0, 1]).shape)
-    print("la.rows(frame=range(10), fly=[0, 1]) -> (14, 12, 2) ==", la.rows(frame=range(10), fly=[0, 1]).shape)
-
-    print('----------- ELLIPSES -------------')
-    print("la[:2, ...] -> (2,12,1) ==", la[:2, ...].shape)
-    print("la[::2, ...] -> (10,12,1) ==", la[::2, ...].shape)
-    print("la[2:8:2, ...] -> (3,12,1) ==", la[2:8:2, ...].shape)
-    print("la[:, 'tail', ...] -> (20,2) ==", la[:, 'tail', ...].shape)
-    print("la[:, 'backR':'tail', ...] -> (20,4,2) ==", la[:, 'backR':'tail', ...].shape)
-
-    mask = np.zeros((20,)).astype(np.bool)
-    mask[[1, 4, 5]] = True
-    print("la[mask, 'tail', ...] -> (3, 2) ==", la[mask, 'tail', ...].shape)
-
-    print('----------- FANCY ROW MATCHING ---')
-    print(la[{'filename': ('rec1', 'rec2'), 'frame': (0, 1, 3)}].shape)
-    print(la.rows(('rec1', 'rec2'), (0, 1, 3)).shape)
-    print(la.rows(('rec1', 'rec2'), frame=(0, 1, 3)).shape)
-    print(la[{'filename': ('rec1', 'rec2'), 'frame': (0, 1, 3)}, ...].shape)
-
-
-def test_set(lax):
-    lax[0, ...] = np.zeros((12, 2))
-
-
-def test_print(la):
-    col_headers = la.col_names
-    col_values = la
-    row_headers = list(la.row_names.keys())
-    row_values = np.array(list(la.row_names.values())).T
-    print(print_table(col_values, col_headers, row_values, row_headers, last_row=5))
-    print(print_table(col_values, col_headers, row_values, row_headers=None, last_row=5))
-    print(print_table(col_values, col_headers, row_values=None, row_headers=None, last_row=5))
-    print(print_table(col_values, col_headers=None, row_values=None, row_headers=None, last_row=5))
-    print(print_table(col_values, col_headers=None, row_values=None, row_headers=None, last_row=5))
-    print(print_table(col_values, col_headers=None, row_values=row_values, row_headers=None, last_row=5))
-    print(print_table(col_values, col_headers=None, row_values=row_values, row_headers=row_headers, last_row=5))
-
-    la.print()
-    la.print_head()
-    la.print_tail()
-    print(la)
-
-
-if __name__ == '__main__':
-    # logging.basicConfig(level=logging.DEBUG)
-    warnings.simplefilter('default')
-
-    body_parts = ['head', 'neck', 'frontL', 'middleL', 'backL', 'frontR', 'middleR', 'backR', 'thorax', 'wingL', 'wingR',
-                  'tail']
-    positions = np.random.randint(0, 100, (20, len(body_parts), 2))
-    row_names = {'filename': np.array(['rec1'] * 10 + ['rec2'] * 10), 'frame': np.array(list(range(10)) * 2),
-                 'fly': np.array([0, 1] * 5 + [0, 1, 2, 3, 4] * 2)}
-
-    la = LArray(positions, col_names=body_parts, row_names=row_names)
-    # add row index
-    row_sex = {'sex': np.array(['male', 'female'] * 5 + ['male', 'male', 'male', 'male', 'female'] * 2)}
-    la.row_names.update(row_sex)
-
-    test_tuplify(la)
-    test_get(la)
-    test_get(LArray(positions, col_names=body_parts))
-    test_get(LArray(positions, row_names=row_names))
-    test_get(LArray(positions))
-    test_set(la)
-    test_print(la)
