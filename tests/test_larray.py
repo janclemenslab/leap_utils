@@ -4,7 +4,6 @@ import logging
 import warnings
 
 
-# logging.basicConfig(level=logging.DEBUG)
 warnings.simplefilter('default')
 
 body_parts = ['head', 'neck', 'frontL', 'middleL', 'backL', 'frontR', 'middleR', 'backR', 'thorax', 'wingL', 'wingR',
@@ -76,6 +75,15 @@ def test_get(la=la):
     print(la.rows(('rec1', 'rec2'), (0, 1, 3)).shape)
     print(la.rows(('rec1', 'rec2'), frame=(0, 1, 3)).shape)
     print(la[{'filename': ('rec1', 'rec2'), 'frame': (0, 1, 3)}, ...].shape)
+    # print(la['rec1'].shape)
+    # print(la['rec1', ...].shape)
+    # print(la[('rec1',), ...].shape)
+    # print(la[(('rec1',), [1, 2]), ...].shape)
+    # print(la[('rec1', [1, 2]), ...].shape)
+    # print(la[[('rec1', 'rec2'), 1, [0, 1, 2]], ...].shape)
+    # print(la[(('rec1', 'rec2'), [1, 2], [0, 1, 2]), ...].shape)
+    # print(la[(('rec1', 'rec2'), [1, 2], [0, 1, 2]), ...].shape)
+    print(la[{'filename': ('rec1', 'rec2'), 'frame': (0, 1, 2, 3)}, ...].shape)
 
 
 def test_set():
@@ -99,3 +107,13 @@ def test_print():
     la.print_head()
     la.print_tail()
     print(la)
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    # la['rec1']
+    # la['rec1',...]
+    # la[('rec1',)]
+    # la[('rec1',),...]
+    # la[('rec1', [0, 1])]
+    # la[('rec1',[0,1]),...]
+    # test_get(la)

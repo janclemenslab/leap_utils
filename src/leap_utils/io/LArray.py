@@ -98,9 +98,6 @@ class LArray(np.ndarray):
         return np.array(self.data)
 
     def _process_key(self, key):
-        if isinstance(key, (str, tuple, list)) and all([isinstance(key_str, str) for key_str in key]):
-            logging.debug(f'got multiple strings: {key} - transforming to indices.')
-            new_key = self.idx(key)
         if isinstance(key, (dict, )):
             logging.debug(f'   row selection with dict: {key}.')
             new_key = (self._match_rows(**key), Ellipsis)
