@@ -65,7 +65,7 @@ def get_box(frame, box_center, box_size, box_angle):
     box, *_ = export_boxes(frame[np.newaxis, ...],
                            box_center[np.newaxis, np.newaxis, ...],
                            box_size, box_angle[np.newaxis, np.newaxis, ...])
-    return box
+    return box[0, ...]
 
 
 def normalize_matlab_boxes(X, permute=(0, 3, 2, 1)):
