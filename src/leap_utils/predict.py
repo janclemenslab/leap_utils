@@ -16,14 +16,13 @@ def load_network(model_path: str, weights_path: str = None, image_size: Sequence
         keras model
     """
     if image_size and len(image_size) == 3:
-        logging.warning(f'image_size should be 2D (width x height) but as {len(image_size)} values ({image_size}). Removing last dimension assuming it corresponds to the number of channels.')
+        logging.warning(f'image_size should be 2D (width x height) but as {len(image_size)} values ({image_size}). Removing last dimension assuming it corresponds to the number of channels, which cannot be changed.')
         image_size = image_size[:-1]
 
     logging.info(f"loading model architecture from {model_path}")
     from keras.models import load_model as keras_load_model
     from keras.models import Model
     from keras.layers import Input
-
     m = keras_load_model(model_path)
     input_size = m.layers[0].input_shape[1:-1]
     input_channels = m.layers[0].input_shape[-1]
