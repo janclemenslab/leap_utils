@@ -29,7 +29,7 @@ def load_network(model_path: str, weights_path: str = None, image_size: Sequence
     if weights_path:
         logging.info(f"loading model weights from {weights_path}")
         m.load_weights(weights_path)
-    if image_size and not np.all(image_size == input_size):
+    if image_size and not np.all(tuple(image_size) == tuple(input_size)):
         logging.info(f"changing input image size from {input_size} to {image_size}")
         newInput = Input(batch_shape=(None, *image_size, input_channels))
         newOutputs = m(newInput)
