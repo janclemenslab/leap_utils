@@ -2,10 +2,22 @@
 `leap_utils`: Utility code for training and running [LEAP](https://github.com/talmo/leap) (see [Pereira et al. (2018)](https://www.biorxiv.org/content/early/2018/05/30/331181)).
 
 # Installation
+Install dependencies:
+```shell
+conda install numpy scikit-image keras tensorflow scikit-learn opencv matplotlib
+pip install git+http://github.com/postpop/videoreader
 ```
+
+Install `leap_utils` in production mode
+```shell
+pip install git+http://github.com/janclemenslab/leap_utils.git
+```
+
+ or in development mode (`-e .`)
+```shell
 git clone http://github.com/janclemenslab/leap_utils.git
 cd leap_utils
-pip install -e . --process-dependency-links
+pip install -e .
 ```
 
 # Analysis pipeline
