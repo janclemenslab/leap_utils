@@ -55,7 +55,7 @@ def smooth(x, N):
 
 
 def rotate_points(x, y, degrees, origin=(0, 0)):
-    """Rotate a point around a given point."""
+    """Rotate (x,y) a point around a given point given by origin."""
     radians = degrees / 180 * np.pi
     offset_x, offset_y = origin
     adjusted_x = (x - offset_x)
@@ -64,7 +64,6 @@ def rotate_points(x, y, degrees, origin=(0, 0)):
     sin_rad = math.sin(radians)
     qx = offset_x + cos_rad * adjusted_x + sin_rad * adjusted_y
     qy = offset_y + -sin_rad * adjusted_x + cos_rad * adjusted_y
-
     return qx, qy
 
 
