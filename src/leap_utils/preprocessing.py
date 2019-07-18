@@ -69,8 +69,7 @@ def export_boxes(frames: Sequence, box_centers: np.array, box_size: List[int],
 
             if background is not None:
                 box = np.concatenate((box, box_bg), axis=-1)
-
-            boxes[box_idx, ...] = box
+            boxes[box_idx, ...] = box[:box_size[0], :box_size[1], :]
 
     return boxes, fly_id, fly_frame
 
@@ -148,7 +147,7 @@ def detect_bad_boxes_by_angle(heads: np.ndarray, tails: np.ndarray, epsilon: flo
 
     Returns:
         fly_angles (in degrees): [nboxes, 1]
-        bad_boxes_byAngle: [nboxes, 1], where 1 = bad box, 0 = good box
+        bad_boxes: [nboxes, 1], where 1 = bad box, 0 = good box
     """
     fly_angles = angles(heads, tails)
     bad_boxes = abs(fly_angles) > epsilon
